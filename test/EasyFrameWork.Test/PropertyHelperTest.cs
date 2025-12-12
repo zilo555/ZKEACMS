@@ -57,22 +57,22 @@ namespace EasyFrameWork.Test
             var people = CreateTestPeople();
 
             PropertyHelper.SetValue(people, "Name", "Wayne Wei");
-            Assert.AreEqual(people.Name, "Wayne Wei");
+            Assert.AreEqual("Wayne Wei", people.Name);
 
             PropertyHelper.SetValue(people, "Hobby[0]", "Running");
-            Assert.AreEqual(people.Hobby[0], "Running");
+            Assert.AreEqual("Running", people.Hobby[0]);
 
             PropertyHelper.SetValue(people, "FormerNames[0]", "OK");
-            Assert.AreEqual(people.FormerNames[0], "OK");
+            Assert.AreEqual("OK", people.FormerNames[0]);
 
             PropertyHelper.SetValue(people, "Properties[\"City\"]", "GuanZhou");
-            Assert.AreEqual(people.Properties["City"], "GuanZhou");
+            Assert.AreEqual("GuanZhou", people.Properties["City"]);
 
             PropertyHelper.SetValue(people, "Children[0]", new People { Name = "New Nancy" });
-            Assert.AreEqual(people.Children[0].Name, "New Nancy");
+            Assert.AreEqual("New Nancy", people.Children[0].Name);
 
             PropertyHelper.SetValue(people, "Children[0].Age", 123);
-            Assert.AreEqual(people.Children[0].Age, 123);
+            Assert.AreEqual(123, people.Children[0].Age);
         }
     }
 }
