@@ -318,9 +318,9 @@ namespace ZKEACMS.Page
                     _layoutHtmlService.Remove(m => allPageIds.Contains(m.PageId));
                     _zoneService.Remove(m => allPageIds.Contains(m.PageId));
 
-                    allPages.Each(p => _eventManager.Trigger(Events.OnPageDeleted, p));
-
                     CurrentDbSet.Where(m=> allPageIds.Contains(m.ID)).ExecuteDelete();
+
+                    allPages.Each(p => _eventManager.Trigger(Events.OnPageDeleted, p));
                 }
             });
         }
