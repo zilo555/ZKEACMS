@@ -19,6 +19,10 @@ export class PageFormPage extends AdminPageBase {
         await this.page.goto('/admin/page/create');
     }
 
+    async navigateToEditPage(pageId: string): Promise<void> {
+        await this.page.goto(`/admin/page/edit/${pageId}`);
+    }
+
     async fillForm(data: PageFormData): Promise<void> {
         await this.fill(this.page.locator('input[name="PageName"]'), data.name);
         await this.fill(this.page.locator('input[name="Title"]'), data.title);

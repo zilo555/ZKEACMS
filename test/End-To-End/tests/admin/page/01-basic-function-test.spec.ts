@@ -80,3 +80,61 @@ test('Should publish page successfully with widgets', async ({ page }) => {
     await pageForm.publishPageInDesignView();
     await expect(page).toHaveURL(`/${formData.path}`);
 });
+test('Should edit page successfully', async ({ page }) => {
+    var pageForm = new PageFormPage(page);
+    const formData = await createPage(pageForm);
+    const newTitle = 'This is an updated Test Page';
+    formData.title = newTitle;
+    await pageForm.navigateToEditPage(formData.id!);
+    await pageForm.fillForm(formData);
+    await pageForm.submitForm();
+    
+    await expect(page.getByRole('textbox', { name: '标题' })).toHaveValue(newTitle);
+});
+test('Should delete page successfully', async ({ page }) => {
+    var pageForm = new PageFormPage(page);
+    const formData = await createPage(pageForm);
+    await page.locator(".templates").evaluate((element) => {
+        if (!element.classList.contains("active")) {
+            element.classList.add("active");
+        }
+    });
+
+    const main = page.getByRole('link', { name: '+ 添加内容 | 主内容' });
+    
+    await page.getByRole('img', { name: '巨幕' }).dragTo(main);
+    await page.getByRole('img', { name: '页头' }).dragTo(main);
+    await page.getByRole('img', { name: '图片', exact: true }).dragTo(main);
+    await page.getByRole('img', { name: '段落' }).dragTo(main);
+    await page.getByRole('img', { name: '分隔符' }).dragTo(main);
+    await page.getByRole('img', { name: '间距' }).dragTo(main);
+    await page.getByRole('img', { name: '文字二列' }).dragTo(main);
+    await page.getByRole('img', { name: '文字三列' }).dragTo(main);
+    await page.getByRole('img', { name: '图片右', exact: true }).dragTo(main);
+    await page.getByRole('img', { name: '图片右（圆）' }).dragTo(main);
+    await page.getByRole('img', { name: '图片左', exact: true }).dragTo(main);
+    await page.getByRole('img', { name: '图片左（圆）' }).dragTo(main);
+    await page.getByRole('img', { name: '图片左（平分）' }).dragTo(main);
+    await page.getByRole('img', { name: '图例二', exact: true }).dragTo(main);
+    await page.getByRole('img', { name: '图例二（圆）' }).dragTo(main);
+    await page.getByRole('img', { name: '图例三', exact: true }).dragTo(main);
+    await page.getByRole('img', { name: '图例三（圆）' }).dragTo(main);
+
+    await page.locator(".templates").evaluate((element) => {
+        if (element.classList.contains("active")) {
+            element.classList.remove("active");
+        }
+    });
+
+    await pageForm.publishPageInDesignView();
+    await expect(page).toHaveURL(`/${formData.path}`);
+    
+    await pageForm.navigateToEditPage(formData.id!);
+    
+    page.once('dialog', dialog => {
+      console.log(`Dialog message: ${dialog.message()}`);
+      dialog.accept().catch(() => {});
+    });
+    await page.getByRole('button', { name: '删除' }).click();
+    await expect(page).toHaveURL(/\/admin\/page#/);
+});
