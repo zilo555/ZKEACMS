@@ -304,7 +304,7 @@ namespace ZKEACMS.Page
                     }
                     allPages.AddRange(deletePages);
                     var allPageIds = allPages.Select(n => n.ID).ToArray();
-                    allPages.AddRange(Get(m => allPageIds.Contains(m.ReferencePageID)));
+                    allPages.AddRange(Get(m => !allPageIds.Contains(m.ID) && allPageIds.Contains(m.ReferencePageID)));
                     allPageIds = allPages.Select(n => n.ID).ToArray();
                     var widgets = _widgetService.Get(m => allPageIds.Contains(m.PageId));
                     widgets.Each(m =>
@@ -320,7 +320,7 @@ namespace ZKEACMS.Page
 
                     allPages.Each(p => _eventManager.Trigger(Events.OnPageDeleted, p));
 
-                    base.RemoveRange(allPages.ToArray());
+                    CurrentDbSet.Where(m=> allPageIds.Contains(m.ID)).ExecuteDelete();
                 }
             });
         }
