@@ -28,6 +28,7 @@ namespace ZKEACMS.Page
         private readonly ILayoutHtmlService _layoutHtmlService;
         private readonly IEventManager _eventManager;
         private readonly ILocalize _localize;
+        private readonly IWidgetCacheService _widgetCacheService;
         private Dictionary<string, IEnumerable<PageEntity>> _cachedPage;
         public PageService(IWidgetBasePartService widgetService,
             IApplicationContext applicationContext,
@@ -36,7 +37,8 @@ namespace ZKEACMS.Page
             ILayoutHtmlService layoutHtmlService,
             ILocalize localize,
             CMSDbContext dbContext,
-            IEventManager eventManager)
+            IEventManager eventManager,
+            IWidgetCacheService widgetCacheService)
             : base(applicationContext, dbContext)
         {
             _widgetService = widgetService;
@@ -46,6 +48,7 @@ namespace ZKEACMS.Page
             _eventManager = eventManager;
             _localize = localize;
             _cachedPage = new Dictionary<string, IEnumerable<PageEntity>>(StringComparer.OrdinalIgnoreCase);
+            _widgetCacheService = widgetCacheService;
         }
 
         private string FormatPath(string path)
@@ -130,6 +133,7 @@ namespace ZKEACMS.Page
                 m.PageId = item.ID;
                 _layoutHtmlService.Add(m);
             });
+            var pageWidgets = new List<WidgetBase>();
             foreach (var widget in widgets)
             {
                 if (widget.Status == (int)WidgetStatus.Hidden) continue;
@@ -141,6 +145,7 @@ namespace ZKEACMS.Page
                         var fullFillWidget = widgetService.GetWidget(widget);
                         fullFillWidget.PageId = item.ID;
                         widgetService.Publish(fullFillWidget);
+                        pageWidgets.Add(fullFillWidget);
                     }
                     else if (widget.Status == (int)WidgetStatus.Deleted)
                     {
@@ -148,6 +153,7 @@ namespace ZKEACMS.Page
                     }
                 }
             }
+            _widgetCacheService.CacheWidgets(item.PageUrl, pageWidgets);
         }
 
         public override DbSet<PageEntity> CurrentDbSet

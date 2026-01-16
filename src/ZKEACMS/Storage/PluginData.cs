@@ -15,10 +15,16 @@ namespace ZKEACMS.Storage
 {
     public abstract class PluginData<T> : IDisposable where T : PluginBase
     {
-        private LiteDatabase Database;
-        public PluginData(ILogger<T> logger)
+        protected LiteDatabase Database;
+        public PluginData()
         {
-            Database = new LiteDatabase(Path.Combine(PluginBase.GetPath<T>(), "Data.db"));
+            InitDatabase();
+        }
+
+        protected virtual void InitDatabase()
+        {
+            var connectionString = Path.Combine(PluginBase.GetPath<T>(), "Data.db");
+            Database = new LiteDatabase(connectionString);
         }
 
         public virtual ILiteCollection<TModel> GetCollection<TModel>(string name)

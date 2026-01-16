@@ -25,17 +25,20 @@ namespace ZKEACMS.Widget
         private readonly IWidgetActivator _widgetActivator;
         private readonly ICacheManager<WidgetBasePartService> _cacheManager;
         private readonly ISignals _signals;
+        private readonly IWidgetCacheService _widgetCacheService;
 
         public WidgetBasePartService(IApplicationContext applicationContext,
             IWidgetActivator widgetActivator,
             ICacheManager<WidgetBasePartService> cacheManager,
-            CMSDbContext dbContext, IEventManager eventManager, ISignals signals)
+            CMSDbContext dbContext, IEventManager eventManager, ISignals signals,
+            IWidgetCacheService widgetCacheService)
             : base(applicationContext, dbContext)
         {
             _widgetActivator = widgetActivator;
             _cacheManager = cacheManager;
             EventManager = eventManager;
             _signals = signals;
+            _widgetCacheService = widgetCacheService;
         }
         public IEventManager EventManager { get; private set; }
         public override DbSet<WidgetBasePart> CurrentDbSet => DbContext.WidgetBasePart;
@@ -70,6 +73,11 @@ namespace ZKEACMS.Widget
                     factory.AddExpirationToken(_signals.When(page.ID));
                     factory.AddExpirationToken(_signals.When(page.ReferencePageID));
                     factory.AddExpirationToken(_signals.When(CacheSignals.PageWidgetChanged));
+                    var widgets = _widgetCacheService.GetCachedWidgets(page.PageUrl);
+                    if (widgets != null)
+                    {
+                        return widgets;
+                    }
                     return getPageWidgets(page);
                 });
             }
