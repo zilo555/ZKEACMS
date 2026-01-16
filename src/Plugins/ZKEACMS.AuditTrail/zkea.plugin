@@ -1,0 +1,6 @@
+{
+	ID:"C5B3EAFA-A5DC-4672-BA2B-CC5B620A980A",
+	Name:"ZKEACMS.AuditTrail",
+	FileName:"ZKEACMS.AuditTrail.dll",
+	Enable:"true"
+}
