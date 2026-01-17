@@ -102,6 +102,15 @@ namespace ZKEACMS.AuditTrail.Service
         }
 
         /// <summary>
+        /// Determine if type is a simple type (value type or string)
+        /// </summary>
+        private static bool IsSimpleType(Type type)
+        {
+            if (type == null) return true;
+            return type.IsValueType || type == typeof(string);
+        }
+
+        /// <summary>
         /// Compare collection types
         /// </summary>
         private static void CompareCollection(object oldObj, object newObj, string fieldName, List<FieldChange> changes, IEnumerable<IAuditValueProvider> valueProviders, PropertyInfo currentPropertyInfo)
@@ -124,6 +133,15 @@ namespace ZKEACMS.AuditTrail.Service
                 newList = Activator.CreateInstance(oldList.GetType()) as IEnumerable;
             }
 
+            var type = oldObj == null ? newObj.GetType() : oldObj.GetType();
+
+            // Handle Dictionary separately
+            if (IsDictionaryType(type))
+            {
+                CompareDictionary(oldObj, newObj, fieldName, changes, valueProviders, currentPropertyInfo);
+                return;
+            }
+
             // Convert to list
             var oldItems = oldList.Cast<object>().ToList();
             var newItems = newList.Cast<object>().ToList();
@@ -132,35 +150,9 @@ namespace ZKEACMS.AuditTrail.Service
             var elementType = GetCollectionElementType(oldObj.GetType());
 
             // Check if elementType is a simple type (value type or string)
-            if (elementType.IsValueType || elementType == typeof(string))
+            if (IsSimpleType(elementType))
             {
-                // Handle simple types: compare which values were added or removed
-                var oldSet = new HashSet<object>(oldItems.Where(i => i != null));
-                var newSet = new HashSet<object>(newItems.Where(i => i != null));
-
-                // Find items that were added
-                var addedItems = newSet.Except(oldSet);
-                if (addedItems.Any())
-                {
-                    changes.Add(new FieldChange
-                    {
-                        Field = fieldName,
-                        OldValue = null,
-                        NewValue = $"{{Added}} {JsonConverter.Serialize(addedItems)}"
-                    });
-                }
-
-                // Find items that were removed
-                var deletedItems = oldSet.Except(newSet);
-                if (deletedItems.Any())
-                {
-                    changes.Add(new FieldChange
-                    {
-                        Field = fieldName,
-                        OldValue = $"{{Removed}} {JsonConverter.Serialize(deletedItems)}",
-                        NewValue = null
-                    });
-                }
+                CompareSimpleElements(fieldName, changes, oldItems, newItems);
                 return;
             }
 
@@ -216,6 +208,106 @@ namespace ZKEACMS.AuditTrail.Service
                         var keyAndTitle = GetKeyAndTitle(keyProperty, titleProperty, oldItem);
                         CompareRecursive(oldItem, newItem, $"{fieldName}[{keyAndTitle}]", changes, valueProviders, null);
                     }
+                }
+            }
+        }
+
+        private static void CompareSimpleElements(string fieldName, List<FieldChange> changes, List<object> oldItems, List<object> newItems)
+        {
+            // Handle simple types: compare which values were added or removed
+            var oldSet = new HashSet<object>(oldItems.Where(i => i != null));
+            var newSet = new HashSet<object>(newItems.Where(i => i != null));
+
+            // Find items that were added
+            var addedItems = newSet.Except(oldSet);
+            if (addedItems.Any())
+            {
+                changes.Add(new FieldChange
+                {
+                    Field = fieldName,
+                    OldValue = null,
+                    NewValue = $"{{Added}} {JsonConverter.Serialize(addedItems)}"
+                });
+            }
+
+            // Find items that were removed
+            var deletedItems = oldSet.Except(newSet);
+            if (deletedItems.Any())
+            {
+                changes.Add(new FieldChange
+                {
+                    Field = fieldName,
+                    OldValue = $"{{Removed}} {JsonConverter.Serialize(deletedItems)}",
+                    NewValue = null
+                });
+            }
+        }
+
+        /// <summary>
+        /// Compare dictionary types
+        /// </summary>
+        private static void CompareDictionary(object oldObj, object newObj, string fieldName, List<FieldChange> changes, IEnumerable<IAuditValueProvider> valueProviders, PropertyInfo currentPropertyInfo)
+        {
+            var oldDict = oldObj as IDictionary;
+            var newDict = newObj as IDictionary;
+
+            if (oldDict == null && newDict == null)
+            {
+                return;
+            }
+
+            if (oldDict == null)
+            {
+                var dictType = newObj.GetType();
+                oldDict = (IDictionary)Activator.CreateInstance(dictType);
+            }
+
+            if (newDict == null)
+            {
+                var dictType = oldObj.GetType();
+                newDict = (IDictionary)Activator.CreateInstance(dictType);
+            }
+
+            // Get all keys from both dictionaries
+            var allKeys = new HashSet<object>();
+            foreach (var key in oldDict.Keys)
+            {
+                allKeys.Add(key);
+            }
+            foreach (var key in newDict.Keys)
+            {
+                allKeys.Add(key);
+            }
+
+            // Compare values for each key
+            foreach (var key in allKeys)
+            {
+                var oldValue = oldDict.Contains(key) ? oldDict[key] : null;
+                var newValue = newDict.Contains(key) ? newDict[key] : null;
+                if (oldValue == null && newValue == null)
+                {
+                    continue;
+                }
+                var valueType = oldValue?.GetType() ?? newValue?.GetType();
+
+                // Use the key in the field name, applying display name logic if available
+                var keyStr = key?.ToString() ?? "null";
+                var fieldPath = $"{fieldName}[{keyStr}]";
+
+                if (IsSimpleType(valueType))
+                {// If value is a simple type (value type or string), handle directly
+                    if (AreEqual(oldValue, newValue)) continue;
+
+                    changes.Add(new FieldChange
+                    {
+                        Field = fieldPath,
+                        OldValue = SerializeValue(oldValue, currentPropertyInfo, valueProviders),
+                        NewValue = SerializeValue(newValue, currentPropertyInfo, valueProviders)
+                    });
+                }
+                else
+                {// For complex objects, compare recursively using the new path
+                    CompareRecursive(oldValue, newValue, fieldPath, changes, valueProviders, currentPropertyInfo);
                 }
             }
         }
@@ -411,6 +503,16 @@ namespace ZKEACMS.AuditTrail.Service
             }
 
             return value.ToString();
+        }
+
+        /// <summary>
+        /// Determine if type is a dictionary type
+        /// </summary>
+        private static bool IsDictionaryType(Type type)
+        {
+            return type.IsGenericType &&
+                   (type.GetGenericTypeDefinition() == typeof(Dictionary<,>) ||
+                    type.GetInterface(nameof(IDictionary)) != null);
         }
     }
 }
