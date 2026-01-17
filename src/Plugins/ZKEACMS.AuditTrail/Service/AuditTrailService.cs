@@ -47,17 +47,19 @@ namespace ZKEACMS.AuditTrail.Service
 
             var record = CreateRecord("Create", entityType, entity, remark);
             
-            // 创建操作：将新数据作为 Changes
-            var properties = GetAuditProperties(entityType);
-            var changes = properties.Select(p => new FieldChange
+            // 创建操作：只记录标题作为 Changes
+            var (titleProperty, titleValue) = GetEntityTitlePropertyAndValue(entity);
+            var changes = new List<FieldChange>
             {
-                Field = p.Name,
-                OldValue = null,
-                NewValue = EntityComparer.SerializeValue(p.GetValue(entity))
-            }).ToList();
+                new FieldChange
+                {
+                    Field = titleProperty?.Name ?? "Title",
+                    OldValue = null,
+                    NewValue = EntityComparer.SerializeValue(titleValue)
+                }
+            };
 
             record.Changes = JsonSerializer.Serialize(changes);
-            record.ChangedFields = string.Join(",", changes.Select(c => c.Field));
 
             _auditTrailData.Save(record);
         }
@@ -74,7 +76,6 @@ namespace ZKEACMS.AuditTrail.Service
 
             var record = CreateRecord("Update", entityType, newEntity, remark);
             record.Changes = JsonSerializer.Serialize(changes);
-            record.ChangedFields = string.Join(",", changes.Select(c => c.Field));
 
             _auditTrailData.Save(record);
         }
@@ -88,17 +89,19 @@ namespace ZKEACMS.AuditTrail.Service
 
             var record = CreateRecord("Delete", entityType, entity, remark);
             
-            // 删除操作：将原数据作为 Changes
-            var properties = GetAuditProperties(entityType);
-            var changes = properties.Select(p => new FieldChange
+            // 删除操作：只记录标题作为 Changes
+            var (titleProperty, titleValue) = GetEntityTitlePropertyAndValue(entity);
+            var changes = new List<FieldChange>
             {
-                Field = p.Name,
-                OldValue = EntityComparer.SerializeValue(p.GetValue(entity)),
-                NewValue = null
-            }).ToList();
+                new FieldChange
+                {
+                    Field = titleProperty?.Name ?? "Title",
+                    OldValue = EntityComparer.SerializeValue(titleValue),
+                    NewValue = null
+                }
+            };
 
             record.Changes = JsonSerializer.Serialize(changes);
-            record.ChangedFields = string.Join(",", changes.Select(c => c.Field));
 
             _auditTrailData.Save(record);
         }
@@ -197,14 +200,16 @@ namespace ZKEACMS.AuditTrail.Service
         }
 
         /// <summary>
-        /// 获取实体标题
+        /// 获取实体标题属性和值
         /// </summary>
-        private string GetEntityTitle<TEntity>(TEntity entity)
+        private (PropertyInfo Property, string Value) GetEntityTitlePropertyAndValue<TEntity>(TEntity entity)
         {
-            if (entity == null) return null;
+            if (entity == null) return (null, null);
+
+            var entityType = entity.GetType();
 
             // 优先查找带有 AuditTitleAttribute 标记的属性
-            var auditTitleProperty = entity.GetType()
+            var auditTitleProperty = entityType
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .FirstOrDefault(p => p.GetCustomAttribute<AuditTitleAttribute>() != null);
 
@@ -213,7 +218,7 @@ namespace ZKEACMS.AuditTrail.Service
                 var value = auditTitleProperty.GetValue(entity) as string;
                 if (!string.IsNullOrEmpty(value))
                 {
-                    return value.Length > 500 ? value.Substring(0, 500) : value;
+                    return (auditTitleProperty, value.Length > 500 ? value.Substring(0, 500) : value);
                 }
             }
 
@@ -221,18 +226,37 @@ namespace ZKEACMS.AuditTrail.Service
             var titleProperties = new[] { "Title", "Name", "DisplayName", "Description" };
             foreach (var propName in titleProperties)
             {
-                var property = entity.GetType().GetProperty(propName);
+                var property = entityType.GetProperty(propName);
                 if (property != null && property.PropertyType == typeof(string))
                 {
                     var value = property.GetValue(entity) as string;
                     if (!string.IsNullOrEmpty(value))
                     {
-                        return value.Length > 500 ? value.Substring(0, 500) : value;
+                        return (property, value.Length > 500 ? value.Substring(0, 500) : value);
                     }
                 }
             }
 
-            return null;
+            // 如果仍然没找到值，但是存在常见标题属性之一，返回属性但值为空
+            foreach (var propName in titleProperties)
+            {
+                var property = entityType.GetProperty(propName);
+                if (property != null && property.PropertyType == typeof(string))
+                {
+                    var value = property.GetValue(entity) as string;
+                    return (property, value?.Length > 500 ? value.Substring(0, 500) : value);
+                }
+            }
+
+            return (null, null);
+        }
+
+        /// <summary>
+        /// 获取实体标题
+        /// </summary>
+        private string GetEntityTitle<TEntity>(TEntity entity)
+        {
+            return GetEntityTitlePropertyAndValue(entity).Value;
         }
 
         /// <summary>
@@ -252,7 +276,6 @@ namespace ZKEACMS.AuditTrail.Service
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(p => p.CanRead && !p.GetCustomAttributes<IgnoreAuditAttribute>().Any());
         }
-
         #endregion
     }
 }

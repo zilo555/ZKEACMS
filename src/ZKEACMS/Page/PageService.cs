@@ -28,7 +28,6 @@ namespace ZKEACMS.Page
         private readonly ILayoutHtmlService _layoutHtmlService;
         private readonly IEventManager _eventManager;
         private readonly ILocalize _localize;
-        private readonly IWidgetCacheService _widgetCacheService;
         private Dictionary<string, IEnumerable<PageEntity>> _cachedPage;
         public PageService(IWidgetBasePartService widgetService,
             IApplicationContext applicationContext,
@@ -37,8 +36,7 @@ namespace ZKEACMS.Page
             ILayoutHtmlService layoutHtmlService,
             ILocalize localize,
             CMSDbContext dbContext,
-            IEventManager eventManager,
-            IWidgetCacheService widgetCacheService)
+            IEventManager eventManager)
             : base(applicationContext, dbContext)
         {
             _widgetService = widgetService;
@@ -48,7 +46,6 @@ namespace ZKEACMS.Page
             _eventManager = eventManager;
             _localize = localize;
             _cachedPage = new Dictionary<string, IEnumerable<PageEntity>>(StringComparer.OrdinalIgnoreCase);
-            _widgetCacheService = widgetCacheService;
         }
 
         private string FormatPath(string path)
@@ -153,7 +150,8 @@ namespace ZKEACMS.Page
                     }
                 }
             }
-            _widgetCacheService.CacheWidgets(item.PageUrl, pageWidgets);
+            item.Content = JsonConverter.SerializePolymorphic(pageWidgets);
+            base.Update(item);
         }
 
         public override DbSet<PageEntity> CurrentDbSet
@@ -324,7 +322,7 @@ namespace ZKEACMS.Page
                     _layoutHtmlService.Remove(m => allPageIds.Contains(m.PageId));
                     _zoneService.Remove(m => allPageIds.Contains(m.PageId));
 
-                    CurrentDbSet.Where(m=> allPageIds.Contains(m.ID)).ExecuteDelete();
+                    CurrentDbSet.Where(m => allPageIds.Contains(m.ID)).ExecuteDelete();
 
                     allPages.Each(p => _eventManager.Trigger(Events.OnPageDeleted, p));
                 }

@@ -1,8 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
-	<PropertyGroup>
-		<AssemblyName>ZKEACMS.WidgetCache</AssemblyName>
-		<PackageId>ZKEACMS.WidgetCache</PackageId>
-		<PackageTags>CMS.WidgetCache</PackageTags>
-		<Description>WidgetCache plugin for ZKEACMS</Description>
-	</PropertyGroup>
-</Project>

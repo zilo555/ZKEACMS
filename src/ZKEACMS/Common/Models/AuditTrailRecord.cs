@@ -20,7 +20,6 @@ namespace ZKEACMS.Common.Models
         public string EntityID { get; set; }
         public string EntityTitle { get; set; }
         public string Changes { get; set; }
-        public string ChangedFields { get; set; }
         public string IPAddress { get; set; }
         public string Remark { get; set; }
     }
