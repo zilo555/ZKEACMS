@@ -369,20 +369,7 @@ namespace ZKEACMS.AuditTrail.Service
                 return auditTitleProperty;
             }
 
-            // Look for title properties by common names
-            var titleNames = new[] { "Title", "Name", "DisplayName", "Description" };
-            foreach (var titleName in titleNames)
-            {
-                var property = properties.FirstOrDefault(p =>
-                    string.Equals(p.Name, titleName, StringComparison.OrdinalIgnoreCase));
-                if (property != null)
-                {
-                    return property;
-                }
-            }
-
-            // Return first property as title (if no common title property is found)
-            return properties.FirstOrDefault();
+            throw new InvalidOperationException($"Collection element type '{type.Name}' must have a property marked with [AuditTitle] attribute for auditing.");
         }
 
         /// <summary>
@@ -427,12 +414,12 @@ namespace ZKEACMS.AuditTrail.Service
         }
 
         /// <summary>
-        /// Get property marked with [Key] attribute
+        /// Get property marked with [AuditKey] attribute
         /// </summary>
         private static PropertyInfo GetKeyProperty(Type type)
         {
             return type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .FirstOrDefault(p => p.GetCustomAttribute<KeyAttribute>() != null);
+                .FirstOrDefault(p => p.GetCustomAttribute<AuditKeyAttribute>() != null);
         }
 
         /// <summary>

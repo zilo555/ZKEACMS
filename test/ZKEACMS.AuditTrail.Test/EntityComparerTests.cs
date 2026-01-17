@@ -48,7 +48,7 @@ namespace ZKEACMS.AuditTrail.Test
 
         public class EntityWithNested
         {
-            [Key]
+            [AuditKey]
             public int Id { get; set; }
             public string Name { get; set; }
             public SimpleEntity Owner { get; set; }
@@ -56,7 +56,7 @@ namespace ZKEACMS.AuditTrail.Test
 
         public class EntityWithCollection
         {
-            [Key]
+            [AuditKey]
             public int Id { get; set; }
             public string Name { get; set; }
             public List<OrderItem> Items { get; set; }
@@ -64,7 +64,7 @@ namespace ZKEACMS.AuditTrail.Test
 
         public class OrderItem
         {
-            [Key]
+            [AuditKey]
             public int ItemId { get; set; }
             [AuditTitle]
             public string ProductName { get; set; }

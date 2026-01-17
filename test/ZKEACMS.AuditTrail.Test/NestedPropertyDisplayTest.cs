@@ -25,7 +25,7 @@ namespace ZKEACMS.AuditTrail.Test
     // New entities for collection testing
     public class CollectionItem
     {
-        [Key]
+        [AuditKey]
         public int ItemId { get; set; }
         [AuditTitle]
         public string ItemName { get; set; }
@@ -34,7 +34,7 @@ namespace ZKEACMS.AuditTrail.Test
 
     public class EntityWithCollections
     {
-        [Key]
+        [AuditKey]
         public int Id { get; set; }
         [AuditTitle]
         public string Name { get; set; }
@@ -282,7 +282,7 @@ namespace ZKEACMS.AuditTrail.Test
 
         public class EntityWithComplexDictionary
         {
-            [Key]
+            [AuditKey]
             public int Id { get; set; }
             [AuditTitle]
             public string Name { get; set; }
@@ -367,11 +367,11 @@ namespace ZKEACMS.AuditTrail.Test
             Assert.AreEqual("New Desc 1", descChange.NewValue);
 
             var newTitleChange = changes.First(c => c.Field == "复杂属性字典[prop3].标题");
-            Assert.AreEqual(null, newTitleChange.OldValue);
+            Assert.IsNull(newTitleChange.OldValue);
             Assert.AreEqual("New Title 3", newTitleChange.NewValue);
 
             var newDescChange = changes.First(c => c.Field == "复杂属性字典[prop3].描述");
-            Assert.AreEqual(null, newDescChange.OldValue);
+            Assert.IsNull(newDescChange.OldValue);
             Assert.AreEqual("New Desc 3", newDescChange.NewValue);
         }
 
@@ -423,11 +423,11 @@ namespace ZKEACMS.AuditTrail.Test
             Assert.AreEqual("New Desc 1", descChange.NewValue);
 
             var newTitleChange = changes.First(c => c.Field == "ComplexProperties[prop3].Title");
-            Assert.AreEqual(null, newTitleChange.OldValue);
+            Assert.IsNull(newTitleChange.OldValue);
             Assert.AreEqual("New Title 3", newTitleChange.NewValue);
 
             var newDescChange = changes.First(c => c.Field == "ComplexProperties[prop3].Description");
-            Assert.AreEqual(null, newDescChange.OldValue);
+            Assert.IsNull(newDescChange.OldValue);
             Assert.AreEqual("New Desc 3", newDescChange.NewValue);
         }
     }
