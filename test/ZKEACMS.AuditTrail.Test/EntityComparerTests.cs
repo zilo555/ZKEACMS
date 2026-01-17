@@ -436,52 +436,5 @@ namespace ZKEACMS.AuditTrail.Test
         }
 
         #endregion
-
-        #region SerializeValue Tests
-
-        [TestMethod]
-        public void SerializeValue_NullValue_ReturnsNull()
-        {
-            // Act
-            var result = EntityComparer.SerializeValue(null);
-
-            // Assert
-            Assert.IsNull(result);
-        }
-
-        [TestMethod]
-        public void SerializeValue_StringValue_ReturnsString()
-        {
-            // Act
-            var result = EntityComparer.SerializeValue("test string");
-
-            // Assert
-            Assert.AreEqual("test string", result);
-        }
-
-        [TestMethod]
-        public void SerializeValue_IntValue_ReturnsString()
-        {
-            // Act
-            var result = EntityComparer.SerializeValue(123);
-
-            // Assert
-            Assert.AreEqual("123", result);
-        }
-
-        [TestMethod]
-        public void SerializeValue_DateTimeValue_ReturnsFormattedString()
-        {
-            // Arrange
-            var dateTime = new DateTime(2026, 1, 14, 15, 30, 45);
-
-            // Act
-            var result = EntityComparer.SerializeValue(dateTime);
-
-            // Assert
-            Assert.AreEqual("2026-01-14 15:30:45", result);
-        }
-
-        #endregion
     }
 }

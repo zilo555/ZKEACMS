@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Text.Json;
 using ZKEACMS.Common.Models;
 using ZKEACMS.Common.Models.Attributes;
+using ZKEACMS.Common.Service;
 
 namespace ZKEACMS.AuditTrail.Service
 {
@@ -22,7 +23,7 @@ namespace ZKEACMS.AuditTrail.Service
         /// <summary>
         /// Compare two entities and return changed fields
         /// </summary>
-        public static List<FieldChange> Compare<TEntity>(TEntity oldEntity, TEntity newEntity) where TEntity : class
+        public static List<FieldChange> Compare<TEntity>(TEntity oldEntity, TEntity newEntity, IEnumerable<IAuditValueProvider> valueProviders = null) where TEntity : class
         {
             var changes = new List<FieldChange>();
 
@@ -39,14 +40,14 @@ namespace ZKEACMS.AuditTrail.Service
                 return changes;
             }
 
-            CompareRecursive(oldEntity, newEntity, "", changes);
+            CompareRecursive(oldEntity, newEntity, "", changes, valueProviders, null);
             return changes;
         }
 
         /// <summary>
         /// Recursively compare entities
         /// </summary>
-        private static void CompareRecursive(object oldObj, object newObj, string prefix, List<FieldChange> changes)
+        private static void CompareRecursive(object oldObj, object newObj, string prefix, List<FieldChange> changes, IEnumerable<IAuditValueProvider> valueProviders, PropertyInfo currentPropertyInfo)
         {
             if (oldObj == null && newObj == null)
             {
@@ -61,8 +62,8 @@ namespace ZKEACMS.AuditTrail.Service
                     changes.Add(new FieldChange
                     {
                         Field = prefix.TrimEnd('.'),
-                        OldValue = SerializeValue(oldObj),
-                        NewValue = SerializeValue(newObj)
+                        OldValue = SerializeValue(oldObj, currentPropertyInfo, valueProviders),
+                        NewValue = SerializeValue(newObj, currentPropertyInfo, valueProviders)
                     });
                 }
                 return;
@@ -77,7 +78,7 @@ namespace ZKEACMS.AuditTrail.Service
             }
             if (IsCollectionType(type))
             {
-                CompareCollection(oldObj, newObj, prefix.TrimEnd('.'), changes);
+                CompareCollection(oldObj, newObj, prefix.TrimEnd('.'), changes, valueProviders, currentPropertyInfo);
                 return;
             }
 
@@ -92,14 +93,15 @@ namespace ZKEACMS.AuditTrail.Service
                 var oldValue = property.GetValue(oldObj);
                 var newValue = property.GetValue(newObj);
 
-                CompareRecursive(oldValue, newValue, propPrefix, changes);
+                // Pass the property info for the current property being compared
+                CompareRecursive(oldValue, newValue, propPrefix, changes, valueProviders, property);
             }
         }
 
         /// <summary>
         /// Compare collection types
         /// </summary>
-        private static void CompareCollection(object oldObj, object newObj, string fieldName, List<FieldChange> changes)
+        private static void CompareCollection(object oldObj, object newObj, string fieldName, List<FieldChange> changes, IEnumerable<IAuditValueProvider> valueProviders, PropertyInfo currentPropertyInfo)
         {
             var oldList = oldObj as IEnumerable;
             var newList = newObj as IEnumerable;
@@ -133,8 +135,8 @@ namespace ZKEACMS.AuditTrail.Service
                     changes.Add(new FieldChange
                     {
                         Field = fieldName,
-                        OldValue = SerializeValue(oldObj),
-                        NewValue = SerializeValue(newObj)
+                        OldValue = SerializeValue(oldObj, currentPropertyInfo, valueProviders),
+                        NewValue = SerializeValue(newObj, currentPropertyInfo, valueProviders)
                     });
                 }
                 return;
@@ -200,7 +202,7 @@ namespace ZKEACMS.AuditTrail.Service
                     if (!AreEqual(oldItem, newItem))
                     {
                         var keyAndTitle = GetKeyAndTitle(keyProperty, titleProperty, oldItem);
-                        CompareRecursive(oldItem, newItem, $"{fieldName}[{keyAndTitle}]", changes);
+                        CompareRecursive(oldItem, newItem, $"{fieldName}[{keyAndTitle}]", changes, valueProviders, null);
                     }
                 }
             }
@@ -319,16 +321,26 @@ namespace ZKEACMS.AuditTrail.Service
 
             return value1.Equals(value2);
         }
-
+        
         /// <summary>
-        /// Serialize value to string
+        /// Serialize value to string with property and value providers
         /// </summary>
-        public static string SerializeValue(object value)
+        static string SerializeValue(object value, PropertyInfo propertyInfo = null, IEnumerable<IAuditValueProvider> valueProviders = null)
         {
             if (value == null) return null;
 
             if (value is string str) return str;
-            if (value is DateTime dt) return dt.ToString("yyyy-MM-dd HH:mm:ss");            
+            if (value is DateTime dt) return dt.ToString("yyyy-MM-dd HH:mm:ss");
+
+            // If property info and value providers are available, try to get display value
+            if (propertyInfo != null && valueProviders != null)
+            {
+                var provider = valueProviders.FirstOrDefault(p => p.CanHandle(propertyInfo, propertyInfo.DeclaringType));
+                if (provider != null)
+                {
+                    return provider.GetDisplayValue(propertyInfo, value);
+                }
+            }
 
             return value.ToString();
         }
