@@ -18,7 +18,7 @@ namespace ZKEACMS.AuditTrail.Test
     [TestClass]
     public class EntityComparerTests
     {
-        #region 测试实体
+        #region Test Entities
 
         public class SimpleEntity
         {
@@ -31,10 +31,10 @@ namespace ZKEACMS.AuditTrail.Test
         public class EntityWithIgnore
         {
             public string Name { get; set; }
-            
+
             [IgnoreAudit]
             public string Password { get; set; }
-            
+
             [IgnoreAudit]
             public string Secret { get; set; }
         }
@@ -44,6 +44,14 @@ namespace ZKEACMS.AuditTrail.Test
         {
             public string Name { get; set; }
             public string Value { get; set; }
+        }
+
+        public class EntityWithNested
+        {
+            [Key]
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public SimpleEntity Owner { get; set; }
         }
 
         public class EntityWithCollection
@@ -58,6 +66,7 @@ namespace ZKEACMS.AuditTrail.Test
         {
             [Key]
             public int ItemId { get; set; }
+            [AuditTitle]
             public string ProductName { get; set; }
             public int Quantity { get; set; }
         }
@@ -70,7 +79,7 @@ namespace ZKEACMS.AuditTrail.Test
 
         #endregion
 
-        #region 基础属性对比测试
+        #region Basic Property Comparison Tests
 
         [TestMethod]
         public void Compare_NoChanges_ReturnsEmptyList()
@@ -136,23 +145,83 @@ namespace ZKEACMS.AuditTrail.Test
 
         #endregion
 
-        #region IgnoreAudit 特性测试
+        #region Nested Object Comparison Tests
+
+        [TestMethod]
+        public void Compare_NestedObject_ChangesDetected()
+        {
+            // Arrange
+            var entity1 = new EntityWithNested
+            {
+                Id = 1,
+                Name = "Parent",
+                Owner = new SimpleEntity { Id = 100, Name = "OldOwner", Age = 30 }
+            };
+            var entity2 = new EntityWithNested
+            {
+                Id = 1,
+                Name = "Parent",
+                Owner = new SimpleEntity { Id = 100, Name = "NewOwner", Age = 35 }
+            };
+
+            // Act
+            var changes = EntityComparer.Compare(entity1, entity2);
+
+            // Assert
+            Assert.IsTrue(changes.Exists(c => c.Field == "Owner.Name"));
+            Assert.IsTrue(changes.Exists(c => c.Field == "Owner.Age"));
+            Assert.AreEqual("OldOwner", changes.First(c => c.Field == "Owner.Name").OldValue);
+            Assert.AreEqual("NewOwner", changes.First(c => c.Field == "Owner.Name").NewValue);
+            Assert.AreEqual("30", changes.First(c => c.Field == "Owner.Age").OldValue);
+            Assert.AreEqual("35", changes.First(c => c.Field == "Owner.Age").NewValue);
+        }
+
+        [TestMethod]
+        public void Compare_NestedObject_NullToValue_ChangeDetected()
+        {
+            // Arrange
+            var entity1 = new EntityWithNested
+            {
+                Id = 1,
+                Name = "Parent",
+                Owner = null
+            };
+            var entity2 = new EntityWithNested
+            {
+                Id = 1,
+                Name = "Parent",
+                Owner = new SimpleEntity { Id = 100, Name = "NewOwner", Age = 30 }
+            };
+
+            // Act
+            var changes = EntityComparer.Compare(entity1, entity2);
+
+            // Assert
+            Assert.HasCount(3, changes);
+            Assert.AreEqual("100", changes.First(c => c.Field == "Owner.Id").NewValue);
+            Assert.AreEqual("NewOwner", changes.First(c => c.Field == "Owner.Name").NewValue);
+            Assert.AreEqual("30", changes.First(c => c.Field == "Owner.Age").NewValue);
+        }
+
+        #endregion
+
+        #region IgnoreAudit Attribute Tests
 
         [TestMethod]
         public void Compare_IgnoredProperties_NotIncludedInChanges()
         {
             // Arrange
-            var entity1 = new EntityWithIgnore 
-            { 
-                Name = "OldName", 
-                Password = "OldPassword", 
-                Secret = "OldSecret" 
+            var entity1 = new EntityWithIgnore
+            {
+                Name = "OldName",
+                Password = "OldPassword",
+                Secret = "OldSecret"
             };
-            var entity2 = new EntityWithIgnore 
-            { 
-                Name = "NewName", 
-                Password = "NewPassword", 
-                Secret = "NewSecret" 
+            var entity2 = new EntityWithIgnore
+            {
+                Name = "NewName",
+                Password = "NewPassword",
+                Secret = "NewSecret"
             };
 
             // Act
@@ -181,7 +250,7 @@ namespace ZKEACMS.AuditTrail.Test
 
         #endregion
 
-        #region DateTime 对比测试
+        #region DateTime Comparison Tests
 
         [TestMethod]
         public void Compare_DateTimeWithinOneSecond_NoChange()
@@ -216,7 +285,7 @@ namespace ZKEACMS.AuditTrail.Test
 
         #endregion
 
-        #region 集合对比测试
+        #region Collection Comparison Tests
 
         [TestMethod]
         public void Compare_CollectionWithKey_DetectsAddedItem()
@@ -248,7 +317,8 @@ namespace ZKEACMS.AuditTrail.Test
             // Assert
             Assert.HasCount(1, changes);
             Assert.AreEqual("Items", changes[0].Field);
-            StringAssert.Contains(changes[0].NewValue, "Added: 2");
+            Assert.AreEqual("{Added} Product2(2)", changes[0].NewValue);
+            Assert.IsNull(changes[0].OldValue);
         }
 
         [TestMethod]
@@ -281,7 +351,8 @@ namespace ZKEACMS.AuditTrail.Test
             // Assert
             Assert.HasCount(1, changes);
             Assert.AreEqual("Items", changes[0].Field);
-            StringAssert.Contains(changes[0].NewValue, "Removed: 2");
+            Assert.AreEqual("{Removed} Product2(2)", changes[0].OldValue);
+            Assert.IsNull(changes[0].NewValue);
         }
 
         [TestMethod]
@@ -312,23 +383,24 @@ namespace ZKEACMS.AuditTrail.Test
 
             // Assert
             Assert.HasCount(1, changes);
-            Assert.AreEqual("Items", changes[0].Field);
-            StringAssert.Contains(changes[0].NewValue, "Modified: 1");
+            Assert.AreEqual("Items[Product1(1)].Quantity", changes[0].Field);
+            Assert.AreEqual("2", changes[0].OldValue);
+            Assert.AreEqual("5", changes[0].NewValue);
         }
 
         [TestMethod]
         public void Compare_ArrayProperty_DetectsChanges()
         {
             // Arrange
-            var entity1 = new EntityWithArray 
-            { 
-                Id = 1, 
-                Tags = new[] { "tag1", "tag2" } 
+            var entity1 = new EntityWithArray
+            {
+                Id = 1,
+                Tags = new[] { "tag1", "tag2" }
             };
-            var entity2 = new EntityWithArray 
-            { 
-                Id = 1, 
-                Tags = new[] { "tag1", "tag2", "tag3" } 
+            var entity2 = new EntityWithArray
+            {
+                Id = 1,
+                Tags = new[] { "tag1", "tag2", "tag3" }
             };
 
             // Act
@@ -344,14 +416,14 @@ namespace ZKEACMS.AuditTrail.Test
         {
             // Arrange
             var entity1 = new EntityWithCollection { Id = 1, Name = "Order", Items = null };
-            var entity2 = new EntityWithCollection 
-            { 
-                Id = 1, 
-                Name = "Order", 
-                Items = new List<OrderItem> 
-                { 
-                    new OrderItem { ItemId = 1, ProductName = "Product1", Quantity = 1 } 
-                } 
+            var entity2 = new EntityWithCollection
+            {
+                Id = 1,
+                Name = "Order",
+                Items = new List<OrderItem>
+                {
+                    new OrderItem { ItemId = 1, ProductName = "Product1", Quantity = 1 }
+                }
             };
 
             // Act
@@ -360,11 +432,12 @@ namespace ZKEACMS.AuditTrail.Test
             // Assert
             Assert.HasCount(1, changes);
             Assert.AreEqual("Items", changes[0].Field);
+            Assert.AreEqual("{Added} Product1(1)", changes[0].NewValue);
         }
 
         #endregion
 
-        #region SerializeValue 测试
+        #region SerializeValue Tests
 
         [TestMethod]
         public void SerializeValue_NullValue_ReturnsNull()
@@ -407,22 +480,6 @@ namespace ZKEACMS.AuditTrail.Test
 
             // Assert
             Assert.AreEqual("2026-01-14 15:30:45", result);
-        }
-
-        [TestMethod]
-        public void SerializeValue_ComplexObject_ReturnsJson()
-        {
-            // Arrange
-            var obj = new SimpleEntity { Id = 1, Name = "Test", Age = 25 };
-
-            // Act
-            var result = EntityComparer.SerializeValue(obj);
-
-            // Assert
-            Assert.IsNotNull(result);
-            StringAssert.Contains(result, "\"Id\":1");
-            StringAssert.Contains(result, "\"Name\":\"Test\"");
-            StringAssert.Contains(result, "\"Age\":25");
         }
 
         #endregion

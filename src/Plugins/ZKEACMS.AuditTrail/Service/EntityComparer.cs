@@ -15,174 +15,246 @@ using ZKEACMS.Common.Models.Attributes;
 namespace ZKEACMS.AuditTrail.Service
 {
     /// <summary>
-    /// 实体对比工具
+    /// Entity comparison utility
     /// </summary>
     public class EntityComparer
     {
         /// <summary>
-        /// 对比两个实体，返回变更的字段
+        /// Compare two entities and return changed fields
         /// </summary>
         public static List<FieldChange> Compare<TEntity>(TEntity oldEntity, TEntity newEntity) where TEntity : class
         {
             var changes = new List<FieldChange>();
-            
+
             if (oldEntity == null || newEntity == null)
             {
                 return changes;
             }
 
             var entityType = typeof(TEntity);
-            
-            // 如果类标记了 IgnoreAudit，则不对比
+
+            // If class is marked with IgnoreAudit, skip comparison
             if (entityType.GetCustomAttribute<IgnoreAuditAttribute>() != null)
             {
                 return changes;
             }
 
-            var properties = entityType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            CompareRecursive(oldEntity, newEntity, "", changes);
+            return changes;
+        }
+
+        /// <summary>
+        /// Recursively compare entities
+        /// </summary>
+        private static void CompareRecursive(object oldObj, object newObj, string prefix, List<FieldChange> changes)
+        {
+            if (oldObj == null && newObj == null)
+            {
+                return;
+            }
+
+            var type = oldObj == null ? newObj.GetType() : oldObj.GetType();
+            if (type.IsValueType || type == typeof(string))
+            {
+                if (!AreEqual(oldObj, newObj))
+                {
+                    changes.Add(new FieldChange
+                    {
+                        Field = prefix.TrimEnd('.'),
+                        OldValue = SerializeValue(oldObj),
+                        NewValue = SerializeValue(newObj)
+                    });
+                }
+                return;
+            }
+            if (oldObj == null)
+            {
+                oldObj = Activator.CreateInstance(type);
+            }
+            if (newObj == null)
+            {
+                newObj = Activator.CreateInstance(type);
+            }
+            if (IsCollectionType(type))
+            {
+                CompareCollection(oldObj, newObj, prefix.TrimEnd('.'), changes);
+                return;
+            }
+
+            // Handle ordinary complex objects
+            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(p => p.CanRead && !p.GetCustomAttributes<IgnoreAuditAttribute>().Any());
 
             foreach (var property in properties)
             {
-                try
-                {
-                    var oldValue = property.GetValue(oldEntity);
-                    var newValue = property.GetValue(newEntity);
+                var propPrefix = string.IsNullOrEmpty(prefix) ? property.Name : $"{prefix}.{property.Name}";
 
-                    // 如果是集合类型（数组、List等），使用特殊的对比逻辑
-                    if (IsCollectionType(property.PropertyType))
-                    {
-                        var collectionChanges = CompareCollection(property, oldValue, newValue);
-                        changes.AddRange(collectionChanges);
-                    }
-                    else
-                    {
-                        // 普通属性对比
-                        if (!AreEqual(oldValue, newValue))
-                        {
-                            changes.Add(new FieldChange
-                            {
-                                Field = property.Name,
-                                OldValue = SerializeValue(oldValue),
-                                NewValue = SerializeValue(newValue)
-                            });
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                    // 忽略无法访问的属性
-                }
+                var oldValue = property.GetValue(oldObj);
+                var newValue = property.GetValue(newObj);
+
+                CompareRecursive(oldValue, newValue, propPrefix, changes);
             }
-
-            return changes;
         }
 
         /// <summary>
-        /// 对比集合类型
+        /// Compare collection types
         /// </summary>
-        private static List<FieldChange> CompareCollection(PropertyInfo property, object oldValue, object newValue)
+        private static void CompareCollection(object oldObj, object newObj, string fieldName, List<FieldChange> changes)
         {
-            var changes = new List<FieldChange>();
-
-            var oldList = oldValue as IEnumerable;
-            var newList = newValue as IEnumerable;
-
-            // 如果一个为空一个不为空，记录整体变化
-            if ((oldList == null && newList != null) || (oldList != null && newList == null))
-            {
-                changes.Add(new FieldChange
-                {
-                    Field = property.Name,
-                    OldValue = SerializeValue(oldValue),
-                    NewValue = SerializeValue(newValue)
-                });
-                return changes;
-            }
+            var oldList = oldObj as IEnumerable;
+            var newList = newObj as IEnumerable;
 
             if (oldList == null && newList == null)
             {
-                return changes;
+                return;
             }
 
-            // 转换为列表
+            if (oldList == null)
+            {
+                oldList = Activator.CreateInstance(newList.GetType()) as IEnumerable;
+            }
+
+            if (newList == null)
+            {
+                newList = Activator.CreateInstance(oldList.GetType()) as IEnumerable;
+            }
+
+            // Convert to list
             var oldItems = oldList.Cast<object>().ToList();
             var newItems = newList.Cast<object>().ToList();
 
-            // 获取元素类型
-            var elementType = GetCollectionElementType(property.PropertyType);
+            // Get element type
+            var elementType = GetCollectionElementType(oldObj.GetType());
             if (elementType == null || elementType == typeof(object))
             {
-                // 无法确定元素类型，使用简单对比
+                // Unable to determine element type, use simple comparison
                 if (oldItems.Count != newItems.Count || !oldItems.SequenceEqual(newItems))
                 {
                     changes.Add(new FieldChange
                     {
-                        Field = property.Name,
-                        OldValue = SerializeValue(oldValue),
-                        NewValue = SerializeValue(newValue)
+                        Field = fieldName,
+                        OldValue = SerializeValue(oldObj),
+                        NewValue = SerializeValue(newObj)
                     });
                 }
-                return changes;
+                return;
             }
 
-            // 获取主键属性
+            // Get key property
             var keyProperty = GetKeyProperty(elementType);
+            var titleProperty = GetTitleProperty(elementType);
 
             if (keyProperty == null)
             {
-                // 没有主键，使用简单对比
+                // No key, use simple comparison
                 if (oldItems.Count != newItems.Count || !oldItems.SequenceEqual(newItems))
                 {
                     changes.Add(new FieldChange
                     {
-                        Field = property.Name,
+                        Field = fieldName,
                         OldValue = $"Count: {oldItems.Count}",
                         NewValue = $"Count: {newItems.Count}"
                     });
                 }
+                return;
             }
-            else
+
+            // Compare by key
+            var oldDict = oldItems.ToDictionary(item => keyProperty.GetValue(item));
+            var newDict = newItems.ToDictionary(item => keyProperty.GetValue(item));
+
+            var allKeys = oldDict.Keys.Union(newDict.Keys).ToList();
+
+            foreach (var key in allKeys)
             {
-                // 按主键对比
-                var oldDict = oldItems.ToDictionary(item => keyProperty.GetValue(item));
-                var newDict = newItems.ToDictionary(item => keyProperty.GetValue(item));
-
-                var allKeys = oldDict.Keys.Union(newDict.Keys).ToList();
-                var itemChanges = new List<string>();
-
-                foreach (var key in allKeys)
+                if (!oldDict.ContainsKey(key))
                 {
-                    if (!oldDict.ContainsKey(key))
-                    {
-                        itemChanges.Add($"Added: {key}");
-                    }
-                    else if (!newDict.ContainsKey(key))
-                    {
-                        itemChanges.Add($"Removed: {key}");
-                    }
-                    else if (!AreEqual(oldDict[key], newDict[key]))
-                    {
-                        itemChanges.Add($"Modified: {key}");
-                    }
-                }
-
-                if (itemChanges.Any())
-                {
+                    // Added item
+                    var addedItem = newDict[key];
+                    var keyAndTitle = GetKeyAndTitle(keyProperty, titleProperty, addedItem);
                     changes.Add(new FieldChange
                     {
-                        Field = property.Name,
-                        OldValue = $"Count: {oldItems.Count}",
-                        NewValue = $"Count: {newItems.Count}, Changes: {string.Join(", ", itemChanges)}"
+                        Field = $"{fieldName}",
+                        OldValue = null,
+                        NewValue = $"{{Added}} {keyAndTitle}"
                     });
                 }
-            }
+                else if (!newDict.ContainsKey(key))
+                {
+                    // Removed item
+                    var removedItem = oldDict[key];
+                    var keyAndTitle = GetKeyAndTitle(keyProperty, titleProperty, removedItem);
+                    changes.Add(new FieldChange
+                    {
+                        Field = $"{fieldName}",
+                        OldValue = $"{{Removed}} {keyAndTitle}",
+                        NewValue = null
+                    });
+                }
+                else
+                {
+                    // Modified item, compare recursively
+                    var oldItem = oldDict[key];
+                    var newItem = newDict[key];
 
-            return changes;
+                    if (!AreEqual(oldItem, newItem))
+                    {
+                        var keyAndTitle = GetKeyAndTitle(keyProperty, titleProperty, oldItem);
+                        CompareRecursive(oldItem, newItem, $"{fieldName}[{keyAndTitle}]", changes);
+                    }
+                }
+            }
         }
 
         /// <summary>
-        /// 判断是否为集合类型
+        /// Get key and title information
+        /// </summary>
+        private static string GetKeyAndTitle(PropertyInfo keyProperty, PropertyInfo titleProperty, object item)
+        {
+            var keyValue = keyProperty.GetValue(item)?.ToString();
+            var titleValue = titleProperty?.GetValue(item)?.ToString();
+
+            if (string.IsNullOrEmpty(titleValue))
+            {
+                return keyValue;
+            }
+
+            return $"{titleValue}({keyValue})";
+        }
+
+        /// <summary>
+        /// Get title property
+        /// </summary>
+        private static PropertyInfo GetTitleProperty(Type type)
+        {
+            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+            // First look for property marked with [AuditTitle]
+            var auditTitleProperty = properties.FirstOrDefault(p =>
+                p.GetCustomAttribute<AuditTitleAttribute>() != null);
+            if (auditTitleProperty != null)
+            {
+                return auditTitleProperty;
+            }
+
+            // Look for title properties by common names
+            var titleNames = new[] { "Title", "Name", "DisplayName", "Description" };
+            foreach (var titleName in titleNames)
+            {
+                var property = properties.FirstOrDefault(p =>
+                    string.Equals(p.Name, titleName, StringComparison.OrdinalIgnoreCase));
+                if (property != null)
+                {
+                    return property;
+                }
+            }
+
+            // Return first property as title (if no common title property is found)
+            return properties.FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Determine if type is a collection type
         /// </summary>
         private static bool IsCollectionType(Type type)
         {
@@ -191,11 +263,11 @@ namespace ZKEACMS.AuditTrail.Service
                 return false;
             }
 
-            return typeof(IEnumerable).IsAssignableFrom(type);
+            return typeof(IEnumerable).IsAssignableFrom(type) && type != typeof(string);
         }
 
         /// <summary>
-        /// 获取集合的元素类型
+        /// Get element type of collection
         /// </summary>
         private static Type GetCollectionElementType(Type collectionType)
         {
@@ -207,11 +279,23 @@ namespace ZKEACMS.AuditTrail.Service
             var enumerableType = collectionType.GetInterfaces()
                 .FirstOrDefault(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>));
 
-            return enumerableType?.GetGenericArguments()[0];
+            if (enumerableType != null)
+            {
+                return enumerableType.GetGenericArguments()[0];
+            }
+
+            // If above didn't work, it could be direct inheritance like List<T>
+            var genericArgs = collectionType.GetGenericArguments();
+            if (genericArgs.Length > 0)
+            {
+                return genericArgs[0];
+            }
+
+            return null;
         }
 
         /// <summary>
-        /// 获取标记了 [Key] 特性的属性
+        /// Get property marked with [Key] attribute
         /// </summary>
         private static PropertyInfo GetKeyProperty(Type type)
         {
@@ -220,14 +304,14 @@ namespace ZKEACMS.AuditTrail.Service
         }
 
         /// <summary>
-        /// 判断两个值是否相等
+        /// Determine if two values are equal
         /// </summary>
         private static bool AreEqual(object value1, object value2)
         {
             if (value1 == null && value2 == null) return true;
             if (value1 == null || value2 == null) return false;
 
-            // 特殊处理DateTime类型，只比较到秒
+            // Special handling for DateTime type, only compare to seconds
             if (value1 is DateTime dt1 && value2 is DateTime dt2)
             {
                 return Math.Abs((dt1 - dt2).TotalSeconds) < 1;
@@ -237,7 +321,7 @@ namespace ZKEACMS.AuditTrail.Service
         }
 
         /// <summary>
-        /// 序列化值为字符串
+        /// Serialize value to string
         /// </summary>
         public static string SerializeValue(object value)
         {
@@ -245,14 +329,14 @@ namespace ZKEACMS.AuditTrail.Service
 
             if (value is string str) return str;
             if (value is DateTime dt) return dt.ToString("yyyy-MM-dd HH:mm:ss");
-            
-            // 对于复杂类型，使用 JSON 序列化
+
+            // For complex types, use JSON serialization
             if (value.GetType().IsClass && value.GetType() != typeof(string))
             {
                 try
                 {
-                    return JsonSerializer.Serialize(value, new JsonSerializerOptions 
-                    { 
+                    return JsonSerializer.Serialize(value, new JsonSerializerOptions
+                    {
                         WriteIndented = false,
                         ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
                     });

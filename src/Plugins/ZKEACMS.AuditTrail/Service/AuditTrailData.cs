@@ -11,9 +11,6 @@ using ZKEACMS.Storage;
 
 namespace ZKEACMS.AuditTrail.Service
 {
-    /// <summary>
-    /// 审计跟踪数据存储实现
-    /// </summary>
     public class AuditTrailData : PluginData<AuditTrailPlug>, IAuditTrailData
     {
         private const string CollectionName = "AuditTrail";
@@ -22,7 +19,6 @@ namespace ZKEACMS.AuditTrail.Service
         {
             var collection = GetCollection<AuditTrailRecord>(CollectionName);
             
-            // 确保索引
             collection.EnsureIndex(m => m.EntityType);
             collection.EnsureIndex(m => m.EntityID);
             collection.EnsureIndex(m => m.UserID);

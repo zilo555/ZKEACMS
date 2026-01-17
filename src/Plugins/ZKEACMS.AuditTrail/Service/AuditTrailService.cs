@@ -18,7 +18,7 @@ using ZKEACMS.Common.Service;
 namespace ZKEACMS.AuditTrail.Service
 {
     /// <summary>
-    /// 审计跟踪服务实现
+    /// Audit trail service implementation
     /// </summary>
     public class AuditTrailService : IAuditTrailService
     {
@@ -36,7 +36,7 @@ namespace ZKEACMS.AuditTrail.Service
             _httpContextAccessor = httpContextAccessor;
         }
 
-        #region 记录数据变化
+        #region Record data changes
 
         public void LogCreate<TEntity>(TEntity entity, string remark = null) where TEntity : class
         {
@@ -47,7 +47,7 @@ namespace ZKEACMS.AuditTrail.Service
 
             var record = CreateRecord("Create", entityType, entity, remark);
             
-            // 创建操作：只记录标题作为 Changes
+            // Create operation: only record the title as Changes
             var (titleProperty, titleValue) = GetEntityTitlePropertyAndValue(entity);
             var changes = new List<FieldChange>
             {
@@ -55,7 +55,7 @@ namespace ZKEACMS.AuditTrail.Service
                 {
                     Field = titleProperty?.Name ?? "Title",
                     OldValue = null,
-                    NewValue = EntityComparer.SerializeValue(titleValue)
+                    NewValue = titleValue
                 }
             };
 
@@ -72,7 +72,7 @@ namespace ZKEACMS.AuditTrail.Service
             if (ShouldIgnoreAudit(entityType)) return;
 
             var changes = EntityComparer.Compare(oldEntity, newEntity);
-            if (!changes.Any()) return; // 没有变化则不记录
+            if (!changes.Any()) return; // Don't record if no changes
 
             var record = CreateRecord("Update", entityType, newEntity, remark);
             record.Changes = JsonSerializer.Serialize(changes);
@@ -89,14 +89,14 @@ namespace ZKEACMS.AuditTrail.Service
 
             var record = CreateRecord("Delete", entityType, entity, remark);
             
-            // 删除操作：只记录标题作为 Changes
+            // Delete operation: only record the title as Changes
             var (titleProperty, titleValue) = GetEntityTitlePropertyAndValue(entity);
             var changes = new List<FieldChange>
             {
                 new FieldChange
                 {
                     Field = titleProperty?.Name ?? "Title",
-                    OldValue = EntityComparer.SerializeValue(titleValue),
+                    OldValue = titleValue,
                     NewValue = null
                 }
             };
@@ -108,7 +108,7 @@ namespace ZKEACMS.AuditTrail.Service
 
         #endregion
 
-        #region 查询审计记录
+        #region Query audit records
 
         public IList<AuditTrailRecord> GetByEntity(string entityType, string entityID)
         {
@@ -132,7 +132,7 @@ namespace ZKEACMS.AuditTrail.Service
 
         #endregion
 
-        #region 数据维护
+        #region Data maintenance
 
         public int CleanUp(DateTime beforeDate)
         {
@@ -146,10 +146,10 @@ namespace ZKEACMS.AuditTrail.Service
 
         #endregion
 
-        #region 辅助方法
+        #region Helper methods
 
         /// <summary>
-        /// 创建审计记录
+        /// Create audit record
         /// </summary>
         private AuditTrailRecord CreateRecord<TEntity>(string operationType, Type entityType, TEntity entity, string remark)
         {
@@ -172,7 +172,7 @@ namespace ZKEACMS.AuditTrail.Service
         }
 
         /// <summary>
-        /// 获取实体ID
+        /// Get entity ID
         /// </summary>
         private string GetEntityID<TEntity>(TEntity entity)
         {
@@ -188,7 +188,7 @@ namespace ZKEACMS.AuditTrail.Service
                 return keyValue?.ToString();
             }
 
-            // 如果没有 Key 特性，尝试查找名为 ID 或 Id 的属性
+            // If no Key attribute, try to find properties named ID or Id
             var idProperty = entity.GetType().GetProperty("ID") ?? entity.GetType().GetProperty("Id");
             if (idProperty != null)
             {
@@ -200,7 +200,7 @@ namespace ZKEACMS.AuditTrail.Service
         }
 
         /// <summary>
-        /// 获取实体标题属性和值
+        /// Get entity title property and value
         /// </summary>
         private (PropertyInfo Property, string Value) GetEntityTitlePropertyAndValue<TEntity>(TEntity entity)
         {
@@ -208,7 +208,7 @@ namespace ZKEACMS.AuditTrail.Service
 
             var entityType = entity.GetType();
 
-            // 优先查找带有 AuditTitleAttribute 标记的属性
+            // First, look for properties marked with AuditTitleAttribute
             var auditTitleProperty = entityType
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .FirstOrDefault(p => p.GetCustomAttribute<AuditTitleAttribute>() != null);
@@ -222,7 +222,7 @@ namespace ZKEACMS.AuditTrail.Service
                 }
             }
 
-            // 如果没有标记，则尝试常见的标题属性
+            // If no attribute found, try common title properties
             var titleProperties = new[] { "Title", "Name", "DisplayName", "Description" };
             foreach (var propName in titleProperties)
             {
@@ -237,7 +237,7 @@ namespace ZKEACMS.AuditTrail.Service
                 }
             }
 
-            // 如果仍然没找到值，但是存在常见标题属性之一，返回属性但值为空
+            // If still no value found, but one of the common title properties exists, return the property but with an empty value
             foreach (var propName in titleProperties)
             {
                 var property = entityType.GetProperty(propName);
@@ -252,7 +252,7 @@ namespace ZKEACMS.AuditTrail.Service
         }
 
         /// <summary>
-        /// 获取实体标题
+        /// Get entity title
         /// </summary>
         private string GetEntityTitle<TEntity>(TEntity entity)
         {
@@ -260,7 +260,7 @@ namespace ZKEACMS.AuditTrail.Service
         }
 
         /// <summary>
-        /// 判断是否应该忽略审计
+        /// Determine whether audit should be ignored
         /// </summary>
         private bool ShouldIgnoreAudit(Type entityType)
         {
@@ -268,7 +268,7 @@ namespace ZKEACMS.AuditTrail.Service
         }
 
         /// <summary>
-        /// 获取需要审计的属性列表
+        /// Get list of properties to audit
         /// </summary>
         private IEnumerable<PropertyInfo> GetAuditProperties(Type entityType)
         {
