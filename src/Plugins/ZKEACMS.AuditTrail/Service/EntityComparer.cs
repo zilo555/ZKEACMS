@@ -2,6 +2,7 @@
  * Copyright (c) ZKEASOFT. All rights reserved. 
  * http://www.zkea.net/licenses */
 
+using Easy.Serializer;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -88,7 +89,9 @@ namespace ZKEACMS.AuditTrail.Service
 
             foreach (var property in properties)
             {
-                var propPrefix = string.IsNullOrEmpty(prefix) ? property.Name : $"{prefix}.{property.Name}";
+                // Get the display name for the current property if available
+                var displayName = GetDisplayPropertyName(property, valueProviders);
+                var propPrefix = string.IsNullOrEmpty(prefix) ? displayName : $"{prefix}.{displayName}";
 
                 var oldValue = property.GetValue(oldObj);
                 var newValue = property.GetValue(newObj);
@@ -127,16 +130,35 @@ namespace ZKEACMS.AuditTrail.Service
 
             // Get element type
             var elementType = GetCollectionElementType(oldObj.GetType());
-            if (elementType == null || elementType == typeof(object))
+
+            // Check if elementType is a simple type (value type or string)
+            if (elementType.IsValueType || elementType == typeof(string))
             {
-                // Unable to determine element type, use simple comparison
-                if (oldItems.Count != newItems.Count || !oldItems.SequenceEqual(newItems))
+                // Handle simple types: compare which values were added or removed
+                var oldSet = new HashSet<object>(oldItems.Where(i => i != null));
+                var newSet = new HashSet<object>(newItems.Where(i => i != null));
+
+                // Find items that were added
+                var addedItems = newSet.Except(oldSet);
+                if (addedItems.Any())
                 {
                     changes.Add(new FieldChange
                     {
                         Field = fieldName,
-                        OldValue = SerializeValue(oldObj, currentPropertyInfo, valueProviders),
-                        NewValue = SerializeValue(newObj, currentPropertyInfo, valueProviders)
+                        OldValue = null,
+                        NewValue = $"{{Added}} {JsonConverter.Serialize(addedItems)}"
+                    });
+                }
+
+                // Find items that were removed
+                var deletedItems = oldSet.Except(newSet);
+                if (deletedItems.Any())
+                {
+                    changes.Add(new FieldChange
+                    {
+                        Field = fieldName,
+                        OldValue = $"{{Removed}} {JsonConverter.Serialize(deletedItems)}",
+                        NewValue = null
                     });
                 }
                 return;
@@ -148,17 +170,7 @@ namespace ZKEACMS.AuditTrail.Service
 
             if (keyProperty == null)
             {
-                // No key, use simple comparison
-                if (oldItems.Count != newItems.Count || !oldItems.SequenceEqual(newItems))
-                {
-                    changes.Add(new FieldChange
-                    {
-                        Field = fieldName,
-                        OldValue = $"Count: {oldItems.Count}",
-                        NewValue = $"Count: {newItems.Count}"
-                    });
-                }
-                return;
+                throw new InvalidOperationException($"Collection element type '{elementType.Name}' must have a property marked with [Key] attribute for auditing.");
             }
 
             // Compare by key
@@ -176,7 +188,7 @@ namespace ZKEACMS.AuditTrail.Service
                     var keyAndTitle = GetKeyAndTitle(keyProperty, titleProperty, addedItem);
                     changes.Add(new FieldChange
                     {
-                        Field = $"{fieldName}",
+                        Field = fieldName,
                         OldValue = null,
                         NewValue = $"{{Added}} {keyAndTitle}"
                     });
@@ -188,7 +200,7 @@ namespace ZKEACMS.AuditTrail.Service
                     var keyAndTitle = GetKeyAndTitle(keyProperty, titleProperty, removedItem);
                     changes.Add(new FieldChange
                     {
-                        Field = $"{fieldName}",
+                        Field = fieldName,
                         OldValue = $"{{Removed}} {keyAndTitle}",
                         NewValue = null
                     });
@@ -206,6 +218,32 @@ namespace ZKEACMS.AuditTrail.Service
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Get the display name for a property
+        /// </summary>
+        private static string GetDisplayPropertyName(PropertyInfo property, IEnumerable<IAuditValueProvider> valueProviders)
+        {
+            if (valueProviders == null)
+            {
+                return property.Name;
+            }
+
+            // Check if any provider implements IAuditDisplayProvider and can provide a display name
+            var displayProvider = valueProviders.OfType<IAuditDisplayProvider>()
+                .FirstOrDefault(p => p.CanHandle(property, property.DeclaringType, AuditOperationType.GetName));
+
+            if (displayProvider != null)
+            {
+                var displayName = displayProvider.GetDisplayName(property, property.DeclaringType);
+                if (!string.IsNullOrEmpty(displayName))
+                {
+                    return displayName;
+                }
+            }
+
+            return property.Name;
         }
 
         /// <summary>
@@ -321,11 +359,24 @@ namespace ZKEACMS.AuditTrail.Service
 
             return value1.Equals(value2);
         }
-        
+
+        /// <summary>
+        /// Serialize value to string
+        /// </summary>
+        public static string SerializeValue(object value)
+        {
+            if (value == null) return null;
+
+            if (value is string str) return str;
+            if (value is DateTime dt) return dt.ToString("yyyy-MM-dd HH:mm:ss");
+
+            return value.ToString();
+        }
+
         /// <summary>
         /// Serialize value to string with property and value providers
         /// </summary>
-        static string SerializeValue(object value, PropertyInfo propertyInfo = null, IEnumerable<IAuditValueProvider> valueProviders = null)
+        private static string SerializeValue(object value, PropertyInfo propertyInfo = null, IEnumerable<IAuditValueProvider> valueProviders = null)
         {
             if (value == null) return null;
 
@@ -335,10 +386,27 @@ namespace ZKEACMS.AuditTrail.Service
             // If property info and value providers are available, try to get display value
             if (propertyInfo != null && valueProviders != null)
             {
-                var provider = valueProviders.FirstOrDefault(p => p.CanHandle(propertyInfo, propertyInfo.DeclaringType));
+                var provider = valueProviders.FirstOrDefault(p => p.CanHandle(propertyInfo, propertyInfo.DeclaringType, AuditOperationType.GetValue));
                 if (provider != null)
                 {
                     return provider.GetDisplayValue(propertyInfo, value);
+                }
+            }
+
+            // For complex types, use JSON serialization
+            if (value.GetType().IsClass && value.GetType() != typeof(string))
+            {
+                try
+                {
+                    return JsonSerializer.Serialize(value, new JsonSerializerOptions
+                    {
+                        WriteIndented = false,
+                        ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
+                    });
+                }
+                catch
+                {
+                    return value.ToString();
                 }
             }
 

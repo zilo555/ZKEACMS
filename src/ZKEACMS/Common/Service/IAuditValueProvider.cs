@@ -8,6 +8,21 @@ using System.Reflection;
 namespace ZKEACMS.Common.Service
 {
     /// <summary>
+    /// Specifies the type of audit display operation
+    /// </summary>
+    public enum AuditOperationType
+    {
+        /// <summary>
+        /// Getting display value for a property
+        /// </summary>
+        GetValue,
+        /// <summary>
+        /// Getting display name for a property
+        /// </summary>
+        GetName
+    }
+    
+    /// <summary>
     /// Provides custom display values for audit logging
     /// </summary>
     public interface IAuditValueProvider
@@ -25,7 +40,8 @@ namespace ZKEACMS.Common.Service
         /// </summary>
         /// <param name="property">The property info</param>
         /// <param name="entityType">The type of the entity</param>
+        /// <param name="operationType">The type of operation to handle</param>
         /// <returns>True if this provider can handle the property, otherwise false</returns>
-        bool CanHandle(PropertyInfo property, Type entityType);
+        bool CanHandle(PropertyInfo property, Type entityType, AuditOperationType operationType = AuditOperationType.GetValue);
     }
 }
