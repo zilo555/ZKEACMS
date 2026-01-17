@@ -328,24 +328,7 @@ namespace ZKEACMS.AuditTrail.Service
             if (value == null) return null;
 
             if (value is string str) return str;
-            if (value is DateTime dt) return dt.ToString("yyyy-MM-dd HH:mm:ss");
-
-            // For complex types, use JSON serialization
-            if (value.GetType().IsClass && value.GetType() != typeof(string))
-            {
-                try
-                {
-                    return JsonSerializer.Serialize(value, new JsonSerializerOptions
-                    {
-                        WriteIndented = false,
-                        ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
-                    });
-                }
-                catch
-                {
-                    return value.ToString();
-                }
-            }
+            if (value is DateTime dt) return dt.ToString("yyyy-MM-dd HH:mm:ss");            
 
             return value.ToString();
         }
