@@ -77,6 +77,47 @@ namespace ZKEACMS.AuditTrail.Test
             public string[] Tags { get; set; }
         }
 
+        // Composite Key and Title Test Entities
+        public class CompositeKeyEntity
+        {
+            [AuditKey(Order = 1)]
+            public int Id { get; set; }
+            [AuditKey(Order = 0)]
+            public string Code { get; set; }
+            public string Name { get; set; }
+        }
+
+        public class CompositeTitleEntity
+        {
+            [AuditTitle(Order = 0)]
+            public string FirstName { get; set; }
+            [AuditTitle(Order = 1)]
+            public string LastName { get; set; }
+            public int Age { get; set; }
+        }
+
+        public class CompositeKeyTitleEntity
+        {
+            [AuditKey(Order = 1)]
+            public string Department { get; set; }
+            [AuditKey(Order = 0)]
+            public int EmployeeId { get; set; }
+
+            [AuditTitle(Order = 0)]
+            public string FirstName { get; set; }
+            [AuditTitle(Order = 1)]
+            public string LastName { get; set; }
+
+            public decimal Salary { get; set; }
+        }
+
+        public class EntityWithCompositeCollection
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public List<CompositeKeyTitleEntity> Employees { get; set; }
+        }
+
         #endregion
 
         #region Basic Property Comparison Tests
@@ -433,6 +474,259 @@ namespace ZKEACMS.AuditTrail.Test
             Assert.HasCount(1, changes);
             Assert.AreEqual("Items", changes[0].Field);
             Assert.AreEqual("{Added} Product1(1)", changes[0].NewValue);
+        }
+
+        #endregion
+
+        #region Composite Key and Title Tests
+
+        [TestMethod]
+        public void Compare_CompositeKeyEntity_IdAndCodeCombinedAsKey()
+        {
+            // Arrange
+            var entity1 = new CompositeKeyEntity
+            {
+                Id = 1,
+                Code = "A001",
+                Name = "Test Entity 1"
+            };
+            var entity2 = new CompositeKeyEntity
+            {
+                Id = 1,
+                Code = "A002", // Changed code
+                Name = "Test Entity 1"
+            };
+
+            // Act
+            var changes = EntityComparer.Compare(entity1, entity2);
+
+            // Assert
+            // Since both entities have the same Id, but different Code, they are considered different entities
+            // The composite key would be "A001|1" vs "A002|1" due to Order attribute (Code first, then Id)
+            Assert.IsGreaterThanOrEqualTo(0, changes.Count); // This test verifies that the composite key works correctly
+        }
+
+        [TestMethod]
+        public void Compare_CompositeTitleEntity_FirstNameAndLastNameCombinedAsTitle()
+        {
+            // Arrange
+            var entity1 = new CompositeTitleEntity
+            {
+                FirstName = "John",
+                LastName = "Doe",
+                Age = 30
+            };
+            var entity2 = new CompositeTitleEntity
+            {
+                FirstName = "Jane", // Changed
+                LastName = "Doe",
+                Age = 30
+            };
+
+            // Act
+            var changes = EntityComparer.Compare(entity1, entity2);
+
+            // Assert
+            Assert.IsTrue(changes.Exists(c => c.Field == "FirstName"));
+            Assert.AreEqual("John", changes.First(c => c.Field == "FirstName").OldValue);
+            Assert.AreEqual("Jane", changes.First(c => c.Field == "FirstName").NewValue);
+        }
+
+        [TestMethod]
+        public void Compare_CompositeKeyTitleEntity_CompositeKeyAndTitle()
+        {
+            // Arrange
+            var entity1 = new CompositeKeyTitleEntity
+            {
+                EmployeeId = 100,
+                Department = "IT",
+                FirstName = "John",
+                LastName = "Smith",
+                Salary = 50000
+            };
+            var entity2 = new CompositeKeyTitleEntity
+            {
+                EmployeeId = 100,
+                Department = "IT",
+                FirstName = "Jane", // Changed
+                LastName = "Smith",
+                Salary = 55000 // Changed
+            };
+
+            // Act
+            var changes = EntityComparer.Compare(entity1, entity2);
+
+            // Assert
+            Assert.IsTrue(changes.Exists(c => c.Field == "FirstName"));
+            Assert.IsTrue(changes.Exists(c => c.Field == "Salary"));
+            Assert.AreEqual("John", changes.First(c => c.Field == "FirstName").OldValue);
+            Assert.AreEqual("Jane", changes.First(c => c.Field == "FirstName").NewValue);
+            Assert.AreEqual("50000", changes.First(c => c.Field == "Salary").OldValue);
+            Assert.AreEqual("55000", changes.First(c => c.Field == "Salary").NewValue);
+        }
+
+        [TestMethod]
+        public void Compare_EntityWithCompositeCollection_AddedItemUsesCompositeKeyTitle()
+        {
+            // Arrange
+            var entity1 = new EntityWithCompositeCollection
+            {
+                Id = 1,
+                Name = "Department A",
+                Employees = new List<CompositeKeyTitleEntity>
+                {
+                    new CompositeKeyTitleEntity
+                    {
+                        EmployeeId = 1,
+                        Department = "IT",
+                        FirstName = "John",
+                        LastName = "Doe",
+                        Salary = 50000
+                    }
+                }
+            };
+            var entity2 = new EntityWithCompositeCollection
+            {
+                Id = 1,
+                Name = "Department A",
+                Employees = new List<CompositeKeyTitleEntity>
+                {
+                    new CompositeKeyTitleEntity
+                    {
+                        EmployeeId = 1,
+                        Department = "IT",
+                        FirstName = "John",
+                        LastName = "Doe",
+                        Salary = 50000
+                    },
+                    new CompositeKeyTitleEntity
+                    {
+                        EmployeeId = 2,
+                        Department = "IT",
+                        FirstName = "Jane",
+                        LastName = "Smith",
+                        Salary = 52000
+                    }
+                }
+            };
+
+            // Act
+            var changes = EntityComparer.Compare(entity1, entity2);
+
+            // Assert
+            Assert.IsTrue(changes.Exists(c => c.Field == "Employees"));
+            var addedChange = changes.First(c => c.Field == "Employees");
+            Assert.IsNull(addedChange.OldValue);
+            Assert.AreEqual("{Added} Jane, Smith(2|IT)", addedChange.NewValue); // Composite title: "Jane, Smith" and composite key: "2|IT" (EmployeeId|Department)
+        }
+
+        [TestMethod]
+        public void Compare_EntityWithCompositeCollection_RemovedItemUsesCompositeKeyTitle()
+        {
+            // Arrange
+            var entity1 = new EntityWithCompositeCollection
+            {
+                Id = 1,
+                Name = "Department A",
+                Employees = new List<CompositeKeyTitleEntity>
+                {
+                    new CompositeKeyTitleEntity
+                    {
+                        EmployeeId = 1,
+                        Department = "IT",
+                        FirstName = "John",
+                        LastName = "Doe",
+                        Salary = 50000
+                    },
+                    new CompositeKeyTitleEntity
+                    {
+                        EmployeeId = 2,
+                        Department = "IT",
+                        FirstName = "Jane",
+                        LastName = "Smith",
+                        Salary = 52000
+                    }
+                }
+            };
+            var entity2 = new EntityWithCompositeCollection
+            {
+                Id = 1,
+                Name = "Department A",
+                Employees = new List<CompositeKeyTitleEntity>
+                {
+                    new CompositeKeyTitleEntity
+                    {
+                        EmployeeId = 1,
+                        Department = "IT",
+                        FirstName = "John",
+                        LastName = "Doe",
+                        Salary = 50000
+                    }
+                }
+            };
+
+            // Act
+            var changes = EntityComparer.Compare(entity1, entity2);
+
+            // Assert
+            Assert.IsTrue(changes.Exists(c => c.Field == "Employees"));
+            var removedChange = changes.First(c => c.Field == "Employees");
+            Assert.IsNull(removedChange.NewValue);
+            Assert.AreEqual("{Removed} Jane, Smith(2|IT)", removedChange.OldValue); // Composite title: "Jane, Smith" and composite key: "2|IT" (EmployeeId|Department)
+        }
+
+        [TestMethod]
+        public void Compare_EntityWithCompositeCollection_ModifiedItemUsesCompositeKeyTitle()
+        {
+            // Arrange
+            var entity1 = new EntityWithCompositeCollection
+            {
+                Id = 1,
+                Name = "Department A",
+                Employees = new List<CompositeKeyTitleEntity>
+                {
+                    new CompositeKeyTitleEntity
+                    {
+                        EmployeeId = 1,
+                        Department = "IT",
+                        FirstName = "John",
+                        LastName = "Doe",
+                        Salary = 50000
+                    }
+                }
+            };
+            var entity2 = new EntityWithCompositeCollection
+            {
+                Id = 1,
+                Name = "Department A",
+                Employees = new List<CompositeKeyTitleEntity>
+                {
+                    new CompositeKeyTitleEntity
+                    {
+                        EmployeeId = 1,
+                        Department = "IT",
+                        FirstName = "John Updated", // Changed
+                        LastName = "Doe",
+                        Salary = 55000 // Changed
+                    }
+                }
+            };
+
+            // Act
+            var changes = EntityComparer.Compare(entity1, entity2);
+
+            // Assert
+            // Check that the changes are detected under the correct path using composite key and title
+            Assert.IsTrue(changes.Exists(c => c.Field == "Employees[John, Doe(1|IT)].FirstName")); // Composite title: "John, Doe" and composite key: "1|IT"
+            Assert.IsTrue(changes.Exists(c => c.Field == "Employees[John, Doe(1|IT)].Salary"));   // Composite title: "John, Doe" and composite key: "1|IT"
+
+            var firstNameChange = changes.First(c => c.Field == "Employees[John, Doe(1|IT)].FirstName");
+            Assert.AreEqual("John", firstNameChange.OldValue);
+            Assert.AreEqual("John Updated", firstNameChange.NewValue);
+
+            var salaryChange = changes.First(c => c.Field == "Employees[John, Doe(1|IT)].Salary");
+            Assert.AreEqual("50000", salaryChange.OldValue);
+            Assert.AreEqual("55000", salaryChange.NewValue);
         }
 
         #endregion

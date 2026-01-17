@@ -156,18 +156,23 @@ namespace ZKEACMS.AuditTrail.Service
                 return;
             }
 
-            // Get key property
-            var keyProperty = GetKeyProperty(elementType);
-            var titleProperty = GetTitleProperty(elementType);
+            // Get key properties (supporting composite keys)
+            var keyProperties = GetKeyProperties(elementType);
+            var titleProperties = GetTitleProperties(elementType);
 
-            if (keyProperty == null)
+            if (!keyProperties.Any())
             {
-                throw new InvalidOperationException($"Collection element type '{elementType.Name}' must have a property marked with [Key] attribute for auditing.");
+                throw new InvalidOperationException($"Type '{elementType.Name}' must have at least one property marked with [AuditKey] attribute for auditing.");
             }
 
-            // Compare by key
-            var oldDict = oldItems.ToDictionary(item => keyProperty.GetValue(item));
-            var newDict = newItems.ToDictionary(item => keyProperty.GetValue(item));
+            if (!titleProperties.Any())
+            {
+                throw new InvalidOperationException($"Type '{elementType.Name}' must have at least one property marked with [AuditTitle] attribute for auditing.");
+            }
+
+            // Compare by key combination
+            var oldDict = oldItems.ToDictionary(item => GetCombinedKeyValue(keyProperties, item));
+            var newDict = newItems.ToDictionary(item => GetCombinedKeyValue(keyProperties, item));
 
             var allKeys = oldDict.Keys.Union(newDict.Keys).ToList();
 
@@ -177,7 +182,7 @@ namespace ZKEACMS.AuditTrail.Service
                 {
                     // Added item
                     var addedItem = newDict[key];
-                    var keyAndTitle = GetKeyAndTitle(keyProperty, titleProperty, addedItem);
+                    var keyAndTitle = GetKeyAndTitle(keyProperties, titleProperties, addedItem);
                     changes.Add(new FieldChange
                     {
                         Field = fieldName,
@@ -189,7 +194,7 @@ namespace ZKEACMS.AuditTrail.Service
                 {
                     // Removed item
                     var removedItem = oldDict[key];
-                    var keyAndTitle = GetKeyAndTitle(keyProperty, titleProperty, removedItem);
+                    var keyAndTitle = GetKeyAndTitle(keyProperties, titleProperties, removedItem);
                     changes.Add(new FieldChange
                     {
                         Field = fieldName,
@@ -205,7 +210,7 @@ namespace ZKEACMS.AuditTrail.Service
 
                     if (!AreEqual(oldItem, newItem))
                     {
-                        var keyAndTitle = GetKeyAndTitle(keyProperty, titleProperty, oldItem);
+                        var keyAndTitle = GetKeyAndTitle(keyProperties, titleProperties, oldItem);
                         CompareRecursive(oldItem, newItem, $"{fieldName}[{keyAndTitle}]", changes, valueProviders, null);
                     }
                 }
@@ -339,12 +344,12 @@ namespace ZKEACMS.AuditTrail.Service
         }
 
         /// <summary>
-        /// Get key and title information
+        /// Get combined key and title information for composite keys/titles
         /// </summary>
-        private static string GetKeyAndTitle(PropertyInfo keyProperty, PropertyInfo titleProperty, object item)
+        private static string GetKeyAndTitle(PropertyInfo[] keyProperties, PropertyInfo[] titleProperties, object item)
         {
-            var keyValue = keyProperty.GetValue(item)?.ToString();
-            var titleValue = titleProperty?.GetValue(item)?.ToString();
+            var keyValue = GetCombinedKeyValue(keyProperties, item);
+            var titleValue = GetCombinedTitleValue(titleProperties, item);
 
             if (string.IsNullOrEmpty(titleValue))
             {
@@ -355,21 +360,47 @@ namespace ZKEACMS.AuditTrail.Service
         }
 
         /// <summary>
-        /// Get title property
+        /// Gets the combined value of all key properties sorted by Order
         /// </summary>
-        private static PropertyInfo GetTitleProperty(Type type)
+        private static string GetCombinedKeyValue(PropertyInfo[] keyProperties, object item)
+        {
+            if (keyProperties == null || !keyProperties.Any())
+            {
+                return "";
+            }
+
+            var keyValues = keyProperties.Select(prop => prop.GetValue(item)?.ToString()).ToArray();
+            return string.Join("|", keyValues); // Using pipe as separator for composite keys
+        }
+
+        /// <summary>
+        /// Gets the combined value of all title properties sorted by Order
+        /// </summary>
+        private static string GetCombinedTitleValue(PropertyInfo[] titleProperties, object item)
+        {
+            if (titleProperties == null || !titleProperties.Any())
+            {
+                return "";
+            }
+
+            var titleValues = titleProperties.Select(prop => prop.GetValue(item)?.ToString()).Where(v => v != null).ToArray();
+            return string.Join(", ", titleValues); // Using comma space to join title parts
+        }
+
+        /// <summary>
+        /// Get all title properties ordered by their Order property
+        /// </summary>
+        private static PropertyInfo[] GetTitleProperties(Type type)
         {
             var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
-            // First look for property marked with [AuditTitle]
-            var auditTitleProperty = properties.FirstOrDefault(p =>
-                p.GetCustomAttribute<AuditTitleAttribute>() != null);
-            if (auditTitleProperty != null)
-            {
-                return auditTitleProperty;
-            }
+            // Get all properties marked with [AuditTitle]
+            var auditTitleProperties = properties
+                .Where(p => p.GetCustomAttribute<AuditTitleAttribute>() != null)
+                .OrderBy(p => p.GetCustomAttribute<AuditTitleAttribute>().Order)
+                .ToArray();
 
-            throw new InvalidOperationException($"Collection element type '{type.Name}' must have a property marked with [AuditTitle] attribute for auditing.");
+            return auditTitleProperties;
         }
 
         /// <summary>
@@ -414,12 +445,19 @@ namespace ZKEACMS.AuditTrail.Service
         }
 
         /// <summary>
-        /// Get property marked with [AuditKey] attribute
+        /// Get all key properties ordered by their Order property
         /// </summary>
-        private static PropertyInfo GetKeyProperty(Type type)
+        private static PropertyInfo[] GetKeyProperties(Type type)
         {
-            return type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .FirstOrDefault(p => p.GetCustomAttribute<AuditKeyAttribute>() != null);
+            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+            // Get all properties marked with [AuditKey]
+            var auditKeyProperties = properties
+                .Where(p => p.GetCustomAttribute<AuditKeyAttribute>() != null)
+                .OrderBy(p => p.GetCustomAttribute<AuditKeyAttribute>().Order)
+                .ToArray();
+
+            return auditKeyProperties;
         }
 
         /// <summary>

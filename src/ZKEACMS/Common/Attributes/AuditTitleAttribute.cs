@@ -9,5 +9,6 @@ namespace ZKEACMS.Common.Models.Attributes
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class AuditTitleAttribute : Attribute
     {
+        public int Order { get; set; } = 0;
     }
 }
