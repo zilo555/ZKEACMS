@@ -3,6 +3,8 @@
  * http://www.zkea.net/licenses */
 
 using Easy;
+using Easy.AuditTrail;
+using Easy.AuditTrail.Attributes;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -12,7 +14,6 @@ using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 using ZKEACMS.Common.Models;
-using ZKEACMS.Common.Models.Attributes;
 using ZKEACMS.Common.Service;
 
 namespace ZKEACMS.AuditTrail.Service

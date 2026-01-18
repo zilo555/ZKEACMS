@@ -4,7 +4,7 @@
 
 using System;
 
-namespace ZKEACMS.Common.Models
+namespace Easy.AuditTrail
 {
     /// <summary>
     /// 审计跟踪记录

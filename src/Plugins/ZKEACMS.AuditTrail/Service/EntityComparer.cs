@@ -2,6 +2,8 @@
  * Copyright (c) ZKEASOFT. All rights reserved. 
  * http://www.zkea.net/licenses */
 
+using Easy.AuditTrail;
+using Easy.AuditTrail.Attributes;
 using Easy.Serializer;
 using System;
 using System.Collections;
@@ -11,7 +13,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using ZKEACMS.Common.Models;
-using ZKEACMS.Common.Models.Attributes;
 using ZKEACMS.Common.Service;
 
 namespace ZKEACMS.AuditTrail.Service

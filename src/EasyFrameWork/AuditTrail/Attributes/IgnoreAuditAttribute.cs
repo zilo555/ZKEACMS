@@ -4,7 +4,7 @@
 
 using System;
 
-namespace ZKEACMS.Common.Models.Attributes
+namespace Easy.AuditTrail.Attributes
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class IgnoreAuditAttribute : Attribute

@@ -4,10 +4,10 @@
 
 using System;
 
-namespace ZKEACMS.Common.Models.Attributes
+namespace Easy.AuditTrail.Attributes
 {
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class AuditTitleAttribute : Attribute
+    public class AuditKeyAttribute : Attribute
     {
         public int Order { get; set; } = 0;
     }

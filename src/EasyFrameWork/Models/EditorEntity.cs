@@ -2,6 +2,7 @@
  * Copyright (c) ZKEASOFT. All rights reserved. 
  * http://www.zkea.net/licenses */
 
+using Easy.AuditTrail.Attributes;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -43,7 +44,7 @@ namespace Easy.Models
         /// 最后更新日期
         /// </summary>
         public virtual DateTime? LastUpdateDate { get; set; }
-        [NotMapped]
+        [NotMapped, IgnoreAudit]
         public virtual Constant.ActionType? ActionType { get; set; }
     }
 

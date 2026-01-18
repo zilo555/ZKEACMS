@@ -1,12 +1,11 @@
+using Easy.AuditTrail;
+using Easy.AuditTrail.Attributes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
 using ZKEACMS.AuditTrail.Service;
-using ZKEACMS.Common.Models.Attributes;
-using ZKEACMS.Common.Service;
 
 namespace ZKEACMS.AuditTrail.Test
 {

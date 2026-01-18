@@ -5,7 +5,7 @@
 using System;
 using System.Reflection;
 
-namespace ZKEACMS.Common.Service
+namespace Easy.AuditTrail
 {
     /// <summary>
     /// Provides custom display values and names for audit logging

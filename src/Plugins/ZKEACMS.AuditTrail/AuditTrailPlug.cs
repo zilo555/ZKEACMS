@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using ZKEACMS.WidgetTemplate;
 using ZKEACMS.AuditTrail.Service;
 using ZKEACMS.Common.Service;
+using Easy.AuditTrail;
 
 namespace ZKEACMS.AuditTrail
 {

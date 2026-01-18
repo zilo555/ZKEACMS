@@ -5,9 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using ZKEACMS.Common.Models;
 
-namespace ZKEACMS.Common.Service
+namespace Easy.AuditTrail
 {
     /// <summary>
     /// 审计跟踪服务接口 - 记录数据的增删改操作

@@ -5,7 +5,7 @@
 using System;
 using System.Reflection;
 
-namespace ZKEACMS.Common.Service
+namespace Easy.AuditTrail
 {
     /// <summary>
     /// Specifies the type of audit display operation

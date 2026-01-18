@@ -3,6 +3,7 @@
  * http://www.zkea.net/licenses */
 
 
+using Easy.AuditTrail;
 using Microsoft.Extensions.DependencyInjection;
 using ZKEACMS.Common.Service;
 

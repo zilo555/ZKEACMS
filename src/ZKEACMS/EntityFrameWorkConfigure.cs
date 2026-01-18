@@ -61,7 +61,7 @@ namespace ZKEACMS
                         break;
                     }
             }
-
+            optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
             optionsBuilder.UseLoggerFactory(_loggerFactory);
         }
     }

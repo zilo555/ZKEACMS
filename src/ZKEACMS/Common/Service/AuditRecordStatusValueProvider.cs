@@ -1,4 +1,5 @@
-﻿using Easy.Constant;
+﻿using Easy.AuditTrail;
+using Easy.Constant;
 using Easy.Modules.DataDictionary;
 using System;
 using System.Collections.Generic;

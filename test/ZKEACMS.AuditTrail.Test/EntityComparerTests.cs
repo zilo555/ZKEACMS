@@ -2,6 +2,7 @@
  * Copyright (c) ZKEASOFT. All rights reserved. 
  * http://www.zkea.net/licenses */
 
+using Easy.AuditTrail.Attributes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using ZKEACMS.AuditTrail.Service;
 using ZKEACMS.Common.Models;
-using ZKEACMS.Common.Models.Attributes;
 
 [assembly: Parallelize(Workers = 0, Scope = ExecutionScope.MethodLevel)]
 

@@ -1,4 +1,5 @@
 ﻿using Easy;
+using Easy.AuditTrail;
 using Easy.Options;
 using Microsoft.Extensions.Options;
 using System;
