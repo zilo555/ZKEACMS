@@ -3,14 +3,13 @@
  * http://www.zkea.net/licenses */
 
 
+using Easy.Serializer;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 using ZKEACMS.SpiderLog.Models;
 
 namespace ZKEACMS.SpiderLog.Service
@@ -29,7 +28,7 @@ namespace ZKEACMS.SpiderLog.Service
 
             string filePath = Path.Combine(PluginBase.GetPath<SpiderLogPlug>(), "SearchEngines.json");
             string json = File.ReadAllText(filePath, Encoding.UTF8);
-            return searchEngines = JsonSerializer.Deserialize<List<SearchEngine>>(json);
+            return searchEngines = JsonConverter.Deserialize<List<SearchEngine>>(json);
         }
 
         public SearchEngine Get(string name)

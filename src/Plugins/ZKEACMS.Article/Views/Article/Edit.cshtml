@@ -32,6 +32,7 @@
                 {
                     <input type="submit" class="btn btn-info publish" value="@L("Publish")" data-value="@ActionType.Publish" />
                 }
+                @Html.ChangeHistoryBtn(Model)
                 <a class="btn btn-default" href="@Url.Action("Index")">@L("Cancel")</a>
             </div>
         }

@@ -13,8 +13,13 @@ namespace ZKEACMS
     {
         public static void ConfigAuditTrial(this IServiceCollection services)
         {
-            services.AddScoped<IAuditValueProvider, AuditRecordStatusValueProvider>();
-            services.AddScoped<IAuditValueProvider, AuditLocalizeDisplayProvider>();
+            services.AddAuditValueProvider<AuditRecordStatusValueProvider>();
+            services.AddAuditValueProvider<AuditLocalizeDisplayProvider>();
+        }
+        public static void AddAuditValueProvider<TAuditValueProvider>(this IServiceCollection services)
+            where TAuditValueProvider : class, IAuditValueProvider
+        {
+            services.AddScoped<IAuditValueProvider, TAuditValueProvider>();
         }
     }
 }

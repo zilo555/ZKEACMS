@@ -30,6 +30,7 @@ namespace Easy.Mvc
         {
             _stateResolvers = new ConcurrentDictionary<string, Func<object>>();
             HttpContextAccessor = httpContextAccessor;
+            ServiceProvider = httpContextAccessor.HttpContext.RequestServices;
         }
         public IHttpContextAccessor HttpContextAccessor
         {
@@ -53,6 +54,7 @@ namespace Easy.Mvc
         {
             get { return Get<IWebHostEnvironment>(nameof(HostingEnvironment)); }
         }
+        public IServiceProvider ServiceProvider { get; }
         public bool IsAuthenticated
         {
             get { return HttpContextAccessor.HttpContext.User.Identity.IsAuthenticated; }

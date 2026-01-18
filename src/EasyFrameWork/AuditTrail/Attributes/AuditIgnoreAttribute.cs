@@ -7,7 +7,7 @@ using System;
 namespace Easy.AuditTrail.Attributes
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class IgnoreAuditAttribute : Attribute
+    public class AuditIgnoreAttribute : Attribute
     {
     }
 }

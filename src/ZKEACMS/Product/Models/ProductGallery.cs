@@ -5,14 +5,10 @@
 using Easy.MetaData;
 using Easy.Models;
 using Easy.RepositoryPattern;
-using System;
+using Easy.Serializer;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 using ZKEACMS.Extend;
 
 namespace ZKEACMS.Product.Models
@@ -31,8 +27,8 @@ namespace ZKEACMS.Product.Models
         public List<ProductGalleryItem> Products { get; set; }
         public string RawData
         {
-            get { return JsonSerializer.Serialize(Products.RemoveDeletedItems()); }
-            set { Products = JsonSerializer.Deserialize<List<ProductGalleryItem>>(value); }
+            get { return JsonConverter.Serialize(Products.RemoveDeletedItems()); }
+            set { Products = JsonConverter.Deserialize<List<ProductGalleryItem>>(value); }
         }
     }
     class ProductGalleryMetaData : ViewMetaData<ProductGallery>

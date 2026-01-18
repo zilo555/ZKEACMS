@@ -2,21 +2,26 @@
  * Copyright (c) ZKEASOFT. All rights reserved. 
  * http://www.zkea.net/licenses */
 
+using Easy;
 using Easy.Extend;
 using Easy.Mvc;
-using Easy.RepositoryPattern;
-using ZKEACMS.Widget;
-using Microsoft.AspNetCore.Html;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Easy.Mvc.Extend;
-using System;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
 using Easy.Mvc.RazorPages;
+using Easy.RepositoryPattern;
+using Microsoft.AspNetCore.Html;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
 using ZKEACMS.HtmlComponent;
+using ZKEACMS.Widget;
 
 namespace ZKEACMS
 {
@@ -177,6 +182,32 @@ namespace ZKEACMS
         public static HtmlPanel BeginPanel(this IHtmlHelper html, string title, string link, string linkText)
         {
             return new HtmlPanel(html.ViewContext.Writer, title, link, linkText);
+        }
+
+        public static IHtmlContent ChangeHistoryBtn(this IHtmlHelper html, object entity)
+        {
+            if (entity == null) return null;
+
+            var btnText = html.ViewContext.HttpContext.RequestServices.GetService<ILocalize>().Get("Change History");
+
+            var keyProperties = entity.GetType()
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.GetCustomAttribute<KeyAttribute>() != null);
+
+            if (!keyProperties.Any())
+            {
+                throw new InvalidOperationException($"Entity type {entity.GetType().FullName} does not have a property marked with [Key] attribute.");
+            }
+
+            var keyValue = string.Join(":", keyProperties.Select(p => p.GetValue(entity).ToString()));
+            var entityType = WebEncoders.Base64UrlEncode(entity.GetType().FullName.ToByte());
+            string url = $"/admin/audittrail/history?entityType={entityType}&entityID={keyValue}";
+            TagBuilder button = new TagBuilder("input");
+            button.AddCssClass("btn btn-info open-dialog");
+            button.Attributes.Add("type", "button");
+            button.Attributes.Add("value", btnText);
+            button.Attributes.Add("data-url", url);
+            return button;
         }
     }
 

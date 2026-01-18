@@ -32,14 +32,14 @@ namespace ZKEACMS.AuditTrail.Test
         {
             public string Name { get; set; }
 
-            [IgnoreAudit]
+            [AuditIgnore]
             public string Password { get; set; }
 
-            [IgnoreAudit]
+            [AuditIgnore]
             public string Secret { get; set; }
         }
 
-        [IgnoreAudit]
+        [AuditIgnore]
         public class IgnoredEntity
         {
             public string Name { get; set; }

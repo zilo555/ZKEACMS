@@ -37,7 +37,7 @@ namespace ZKEACMS.AuditTrail.Service
             var entityType = typeof(TEntity);
 
             // If class is marked with IgnoreAudit, skip comparison
-            if (entityType.GetCustomAttribute<IgnoreAuditAttribute>() != null)
+            if (entityType.GetCustomAttribute<AuditIgnoreAttribute>() != null)
             {
                 return changes;
             }
@@ -86,7 +86,7 @@ namespace ZKEACMS.AuditTrail.Service
 
             // Handle ordinary complex objects
             var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(p => p.CanRead && !p.GetCustomAttributes<IgnoreAuditAttribute>().Any());
+                .Where(p => p.CanRead && !p.GetCustomAttributes<AuditIgnoreAttribute>().Any());
 
             foreach (var property in properties)
             {
@@ -511,23 +511,6 @@ namespace ZKEACMS.AuditTrail.Service
                 if (provider != null)
                 {
                     return provider.GetDisplayValue(propertyInfo, value);
-                }
-            }
-
-            // For complex types, use JSON serialization
-            if (value.GetType().IsClass && value.GetType() != typeof(string))
-            {
-                try
-                {
-                    return JsonSerializer.Serialize(value, new JsonSerializerOptions
-                    {
-                        WriteIndented = false,
-                        ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
-                    });
-                }
-                catch
-                {
-                    return value.ToString();
                 }
             }
 

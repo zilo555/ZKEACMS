@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ZKEACMS.Common.Attributes
+namespace Easy.AuditTrail.Attributes
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class AuditRecordStatusAttribute : Attribute

@@ -5,17 +5,17 @@
 using Easy;
 using Easy.AuditTrail;
 using Easy.AuditTrail.Attributes;
+using Easy.Extend;
 using Easy.RepositoryPattern;
+using Easy.Serializer;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
-using System.Text.Json;
-using System.Threading.Tasks;
-using ZKEACMS.Common.Models;
-using ZKEACMS.Common.Service;
 
 namespace ZKEACMS.AuditTrail.Service
 {
@@ -25,18 +25,15 @@ namespace ZKEACMS.AuditTrail.Service
     public class AuditTrailService : ServiceBase<AuditTrailRecord>, IAuditTrailService
     {
         private readonly IApplicationContext _applicationContext;
-        private readonly IEnumerable<IAuditValueProvider> _auditTrailValueProviders;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public AuditTrailService(
             IApplicationContext applicationContext,
-            IEnumerable<IAuditValueProvider> auditTrailValueProviders,
             CMSDbContext dbContext,
             IHttpContextAccessor httpContextAccessor)
             : base(applicationContext, dbContext)
         {
             _applicationContext = applicationContext;
-            _auditTrailValueProviders = auditTrailValueProviders;
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -59,7 +56,7 @@ namespace ZKEACMS.AuditTrail.Service
                 }
             };
 
-            record.Changes = JsonSerializer.Serialize(changes);
+            record.Changes = JsonConverter.Serialize(changes);
 
             Add(record);
         }
@@ -71,12 +68,15 @@ namespace ZKEACMS.AuditTrail.Service
             var entityType = typeof(TEntity);
             if (ShouldIgnoreAudit(entityType)) return;
 
-            var changes = EntityComparer.Compare(oldEntity, newEntity, _auditTrailValueProviders);
+            var changes = EntityComparer.Compare(oldEntity, newEntity, _applicationContext.ServiceProvider.GetServices<IAuditValueProvider>());
             if (!changes.Any()) return; // Don't record if no changes
 
             var record = CreateRecord(entityType, newEntity, remark);
-            record.Changes = JsonSerializer.Serialize(changes);
-
+            for (int i = 0; i < changes.Count; i++)
+            {
+                changes[i].Sequence = i;
+            }
+            record.Changes = JsonConverter.Serialize(changes);
             Add(record);
         }
 
@@ -97,7 +97,7 @@ namespace ZKEACMS.AuditTrail.Service
                 }
             };
 
-            record.Changes = JsonSerializer.Serialize(changes);
+            record.Changes = JsonConverter.Serialize(changes);
             Add(record);
         }
 
@@ -107,12 +107,13 @@ namespace ZKEACMS.AuditTrail.Service
 
         public IList<AuditTrailRecord> GetByEntity(string entityType, string entityID, Pagination pagination)
         {
+            pagination.OrderByDescending = nameof(AuditTrailRecord.ID);
             return Get(m => m.EntityType == entityType && m.EntityID == entityID, pagination);
         }
 
         private bool ShouldIgnoreAudit(Type entityType)
         {
-            return entityType.GetCustomAttribute<IgnoreAuditAttribute>() != null;
+            return entityType.GetCustomAttribute<AuditIgnoreAttribute>() != null;
         }
         private string GetEntityID<TEntity>(TEntity entity)
         {
@@ -136,9 +137,10 @@ namespace ZKEACMS.AuditTrail.Service
             var currentUser = _applicationContext.CurrentUser;
             var httpContext = _httpContextAccessor.HttpContext;
 
+
             return new AuditTrailRecord
             {
-                EntityType = entityType.FullName,
+                EntityType = WebEncoders.Base64UrlEncode(entityType.FullName.ToByte()),
                 EntityID = GetEntityID(entity),
                 IPAddress = httpContext?.Connection?.RemoteIpAddress?.ToString(),
                 Description = remark
