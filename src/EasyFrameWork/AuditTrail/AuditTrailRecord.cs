@@ -2,35 +2,35 @@
  * Copyright (c) ZKEASOFT. All rights reserved. 
  * http://www.zkea.net/licenses */
 
+using Easy.Constant;
+using Easy.MetaData;
+using Easy.Models;
+using Easy.Modules.User.Models;
+using Easy.RepositoryPattern;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Easy.AuditTrail
 {
-    /// <summary>
-    /// 审计跟踪记录
-    /// </summary>
-    public class AuditTrailRecord
+    [DataTable("AuditTrail")]
+    public class AuditTrailRecord : EditorEntity
     {
-        public long ID { get; set; }
-        public string UserID { get; set; }
-        public string UserName { get; set; }
-        public DateTime OperationTime { get; set; }
-        public string OperationType { get; set; }
+        [Key]
+        public int ID { get; set; }        
         public string EntityType { get; set; }
         public string EntityID { get; set; }
-        public string EntityTitle { get; set; }
         public string Changes { get; set; }
         public string IPAddress { get; set; }
-        public string Remark { get; set; }
     }
-
-    /// <summary>
-    /// 字段变更详情
-    /// </summary>
-    public class FieldChange
+    class AuditTrailRecordMetaData : ViewMetaData<AuditTrailRecord>
     {
-        public string Field { get; set; }
-        public string OldValue { get; set; }
-        public string NewValue { get; set; }
+        protected override void ViewConfigure()
+        {
+            ViewConfig(p => p.ID).AsHidden();
+            ViewConfig(p => p.EntityType).AsHidden();
+            ViewConfig(p => p.EntityID).AsHidden();
+            ViewConfig(p => p.Changes).AsTextArea();
+            ViewConfig(p => p.IPAddress).AsTextBox();
+        }
     }
 }

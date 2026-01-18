@@ -338,6 +338,14 @@ namespace ZKEACMS.AuditTrail.Service
 
             return property.Name;
         }
+        
+        public static string GetKeyAndTitle<TEntity>(TEntity item) where TEntity : class
+        {
+            var type = typeof(TEntity);
+            var keyProperties = GetKeyProperties(type);
+            var titleProperties = GetTitleProperties(type);
+            return GetKeyAndTitle(keyProperties, titleProperties, item);
+        }
 
         /// <summary>
         /// Get combined key and title information for composite keys/titles

@@ -5,4 +5,7 @@
 		<PackageTags>CMS.AuditTrail</PackageTags>
 		<Description>AuditTrail plugin for ZKEACMS</Description>
 	</PropertyGroup>
+	<ItemGroup>
+	  <EmbeddedResource Remove="EntityFrameWorkModelCreating.cs" />
+	</ItemGroup>
 </Project>
