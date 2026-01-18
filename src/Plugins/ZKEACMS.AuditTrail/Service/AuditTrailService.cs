@@ -25,15 +25,18 @@ namespace ZKEACMS.AuditTrail.Service
         private readonly IAuditTrailData _auditTrailData;
         private readonly IApplicationContext _applicationContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IEnumerable<IAuditValueProvider> _auditTrailValueProviders;
 
         public AuditTrailService(
             IAuditTrailData auditTrailData,
             IApplicationContext applicationContext,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IEnumerable<IAuditValueProvider> auditTrailValueProviders)
         {
             _auditTrailData = auditTrailData;
             _applicationContext = applicationContext;
             _httpContextAccessor = httpContextAccessor;
+            _auditTrailValueProviders = auditTrailValueProviders;
         }
 
         #region Record data changes
@@ -46,7 +49,7 @@ namespace ZKEACMS.AuditTrail.Service
             if (ShouldIgnoreAudit(entityType)) return;
 
             var record = CreateRecord("Create", entityType, entity, remark);
-            
+
             // Create operation: only record the title as Changes
             var (titleProperty, titleValue) = GetEntityTitlePropertyAndValue(entity);
             var changes = new List<FieldChange>
@@ -71,7 +74,7 @@ namespace ZKEACMS.AuditTrail.Service
             var entityType = typeof(TEntity);
             if (ShouldIgnoreAudit(entityType)) return;
 
-            var changes = EntityComparer.Compare(oldEntity, newEntity);
+            var changes = EntityComparer.Compare(oldEntity, newEntity, _auditTrailValueProviders);
             if (!changes.Any()) return; // Don't record if no changes
 
             var record = CreateRecord("Update", entityType, newEntity, remark);
@@ -88,7 +91,7 @@ namespace ZKEACMS.AuditTrail.Service
             if (ShouldIgnoreAudit(entityType)) return;
 
             var record = CreateRecord("Delete", entityType, entity, remark);
-            
+
             // Delete operation: only record the title as Changes
             var (titleProperty, titleValue) = GetEntityTitlePropertyAndValue(entity);
             var changes = new List<FieldChange>
@@ -121,7 +124,7 @@ namespace ZKEACMS.AuditTrail.Service
 
             var entityType = typeof(TEntity);
             var entityID = GetEntityID(entity);
-            
+
             return GetByEntity(entityType.FullName, entityID);
         }
 

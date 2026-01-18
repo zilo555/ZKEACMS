@@ -42,6 +42,6 @@ namespace ZKEACMS.Common.Service
         /// <param name="entityType">The type of the entity</param>
         /// <param name="operationType">The type of operation to handle</param>
         /// <returns>True if this provider can handle the property, otherwise false</returns>
-        bool CanHandle(PropertyInfo property, Type entityType, AuditOperationType operationType = AuditOperationType.GetValue);
+        bool CanHandle(PropertyInfo property, Type entityType, AuditOperationType operationType);
     }
 }

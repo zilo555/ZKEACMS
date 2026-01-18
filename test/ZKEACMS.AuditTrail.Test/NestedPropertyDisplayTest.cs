@@ -1,4 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -50,7 +51,7 @@ namespace ZKEACMS.AuditTrail.Test
             return rawValue?.ToString();
         }
 
-        public string GetDisplayName(PropertyInfo property, System.Type entityType)
+        public string GetDisplayName(PropertyInfo property, Type entityType)
         {
             if (entityType == typeof(NestedEntity) && property.Name == nameof(NestedEntity.Title))
             {
@@ -83,7 +84,7 @@ namespace ZKEACMS.AuditTrail.Test
             return property.Name; // Return original name for others
         }
 
-        public bool CanHandle(PropertyInfo property, System.Type entityType, AuditOperationType operationType = AuditOperationType.GetValue)
+        public bool CanHandle(PropertyInfo property, Type entityType, AuditOperationType operationType)
         {
             return operationType == AuditOperationType.GetName;
         }
@@ -297,7 +298,7 @@ namespace ZKEACMS.AuditTrail.Test
                 return rawValue?.ToString();
             }
 
-            public string GetDisplayName(PropertyInfo property, System.Type entityType)
+            public string GetDisplayName(PropertyInfo property, Type entityType)
             {
                 if (entityType == typeof(EntityWithComplexDictionary) && property.Name == nameof(EntityWithComplexDictionary.ComplexProperties))
                 {
@@ -314,7 +315,7 @@ namespace ZKEACMS.AuditTrail.Test
                 return property.Name; // Return original name for others
             }
 
-            public bool CanHandle(PropertyInfo property, System.Type entityType, AuditOperationType operationType = AuditOperationType.GetValue)
+            public bool CanHandle(PropertyInfo property, Type entityType, AuditOperationType operationType)
             {
                 return operationType == AuditOperationType.GetName;
             }

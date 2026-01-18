@@ -35,6 +35,7 @@ namespace ZKEACMS
             services.UseEasyFrameWork(configuration);
             services.ConfigPlugin(webHostEnvironment, mvcBuilder);
             services.ConfigAuthentication();
+            services.ConfigAuditTrial();
         }
 
         public static void UseZKEACMS(this IApplicationBuilder applicationBuilder, IWebHostEnvironment hostingEnvironment, IServiceProvider serviceProvider)
