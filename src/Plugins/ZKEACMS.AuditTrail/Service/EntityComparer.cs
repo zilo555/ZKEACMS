@@ -162,12 +162,7 @@ namespace ZKEACMS.AuditTrail.Service
 
             if (!keyProperties.Any())
             {
-                throw new InvalidOperationException($"Type '{elementType.Name}' must have at least one property marked with [AuditKey] attribute for auditing.");
-            }
-
-            if (!titleProperties.Any())
-            {
-                throw new InvalidOperationException($"Type '{elementType.Name}' must have at least one property marked with [AuditTitle] attribute for auditing.");
+                throw new InvalidOperationException($"Collection element type '{elementType.Name}' must have at least one property marked with [AuditKey] attribute for auditing.");
             }
 
             // Compare by key combination
@@ -356,7 +351,7 @@ namespace ZKEACMS.AuditTrail.Service
                 return keyValue;
             }
 
-            return $"{titleValue}({keyValue})";
+            return $"({keyValue}):{titleValue}";
         }
 
         /// <summary>

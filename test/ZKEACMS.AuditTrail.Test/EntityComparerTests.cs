@@ -358,7 +358,7 @@ namespace ZKEACMS.AuditTrail.Test
             // Assert
             Assert.HasCount(1, changes);
             Assert.AreEqual("Items", changes[0].Field);
-            Assert.AreEqual("{Added} Product2(2)", changes[0].NewValue);
+            Assert.AreEqual("{Added} (2):Product2", changes[0].NewValue);
             Assert.IsNull(changes[0].OldValue);
         }
 
@@ -392,7 +392,7 @@ namespace ZKEACMS.AuditTrail.Test
             // Assert
             Assert.HasCount(1, changes);
             Assert.AreEqual("Items", changes[0].Field);
-            Assert.AreEqual("{Removed} Product2(2)", changes[0].OldValue);
+            Assert.AreEqual("{Removed} (2):Product2", changes[0].OldValue);
             Assert.IsNull(changes[0].NewValue);
         }
 
@@ -424,7 +424,7 @@ namespace ZKEACMS.AuditTrail.Test
 
             // Assert
             Assert.HasCount(1, changes);
-            Assert.AreEqual("Items[Product1(1)].Quantity", changes[0].Field);
+            Assert.AreEqual("Items[(1):Product1].Quantity", changes[0].Field);
             Assert.AreEqual("2", changes[0].OldValue);
             Assert.AreEqual("5", changes[0].NewValue);
         }
@@ -473,7 +473,7 @@ namespace ZKEACMS.AuditTrail.Test
             // Assert
             Assert.HasCount(1, changes);
             Assert.AreEqual("Items", changes[0].Field);
-            Assert.AreEqual("{Added} Product1(1)", changes[0].NewValue);
+            Assert.AreEqual("{Added} (1):Product1", changes[0].NewValue);
         }
 
         #endregion
@@ -617,7 +617,7 @@ namespace ZKEACMS.AuditTrail.Test
             Assert.IsTrue(changes.Exists(c => c.Field == "Employees"));
             var addedChange = changes.First(c => c.Field == "Employees");
             Assert.IsNull(addedChange.OldValue);
-            Assert.AreEqual("{Added} Jane, Smith(2|IT)", addedChange.NewValue); // Composite title: "Jane, Smith" and composite key: "2|IT" (EmployeeId|Department)
+            Assert.AreEqual("{Added} (2|IT):Jane, Smith", addedChange.NewValue); // Composite key: "2|IT" and composite title: "Jane, Smith"
         }
 
         [TestMethod]
@@ -672,7 +672,7 @@ namespace ZKEACMS.AuditTrail.Test
             Assert.IsTrue(changes.Exists(c => c.Field == "Employees"));
             var removedChange = changes.First(c => c.Field == "Employees");
             Assert.IsNull(removedChange.NewValue);
-            Assert.AreEqual("{Removed} Jane, Smith(2|IT)", removedChange.OldValue); // Composite title: "Jane, Smith" and composite key: "2|IT" (EmployeeId|Department)
+            Assert.AreEqual("{Removed} (2|IT):Jane, Smith", removedChange.OldValue); // Composite key: "2|IT" and composite title: "Jane, Smith"
         }
 
         [TestMethod]
@@ -717,14 +717,14 @@ namespace ZKEACMS.AuditTrail.Test
 
             // Assert
             // Check that the changes are detected under the correct path using composite key and title
-            Assert.IsTrue(changes.Exists(c => c.Field == "Employees[John, Doe(1|IT)].FirstName")); // Composite title: "John, Doe" and composite key: "1|IT"
-            Assert.IsTrue(changes.Exists(c => c.Field == "Employees[John, Doe(1|IT)].Salary"));   // Composite title: "John, Doe" and composite key: "1|IT"
+            Assert.IsTrue(changes.Exists(c => c.Field == "Employees[(1|IT):John, Doe].FirstName")); // Composite key: "1|IT" and composite title: "John, Doe"
+            Assert.IsTrue(changes.Exists(c => c.Field == "Employees[(1|IT):John, Doe].Salary"));   // Composite key: "1|IT" and composite title: "John, Doe"
 
-            var firstNameChange = changes.First(c => c.Field == "Employees[John, Doe(1|IT)].FirstName");
+            var firstNameChange = changes.First(c => c.Field == "Employees[(1|IT):John, Doe].FirstName");
             Assert.AreEqual("John", firstNameChange.OldValue);
             Assert.AreEqual("John Updated", firstNameChange.NewValue);
 
-            var salaryChange = changes.First(c => c.Field == "Employees[John, Doe(1|IT)].Salary");
+            var salaryChange = changes.First(c => c.Field == "Employees[(1|IT):John, Doe].Salary");
             Assert.AreEqual("50000", salaryChange.OldValue);
             Assert.AreEqual("55000", salaryChange.NewValue);
         }

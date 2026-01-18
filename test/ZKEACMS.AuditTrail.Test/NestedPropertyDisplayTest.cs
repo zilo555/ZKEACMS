@@ -199,17 +199,17 @@ namespace ZKEACMS.AuditTrail.Test
             var changes = EntityComparer.Compare(oldValue, newValue, valueProviders);
 
             // Assert
-            // Check that we have changes for the items in the collection using the correct format [{Title}({id})]
-            Assert.IsTrue(changes.Exists(c => c.Field == "项目列表[Old Item 1(1)].项目名称")); // Items[New Item 1(1)].ItemName in Chinese
-            Assert.IsTrue(changes.Exists(c => c.Field == "项目列表[Old Item 1(1)].项目详情.标题")); // Items[New Item 1(1)].ItemDetails.Title in Chinese
+            // Check that we have changes for the items in the collection using the correct format [({id}):{Title}]
+            Assert.IsTrue(changes.Exists(c => c.Field == "项目列表[(1):Old Item 1].项目名称")); // Items[(1):New Item 1].ItemName in Chinese
+            Assert.IsTrue(changes.Exists(c => c.Field == "项目列表[(1):Old Item 1].项目详情.标题")); // Items[(1):New Item 1].ItemDetails.Title in Chinese
             Assert.IsTrue(changes.Exists(c => c.Field == "属性字典[prop1]")); // Properties["prop1"] in Chinese
             Assert.IsTrue(changes.Exists(c => c.Field == "属性字典[prop2]")); // Properties["prop2"] in Chinese
 
-            var itemNameChange = changes.First(c => c.Field == "项目列表[Old Item 1(1)].项目名称");
+            var itemNameChange = changes.First(c => c.Field == "项目列表[(1):Old Item 1].项目名称");
             Assert.AreEqual("Old Item 1", itemNameChange.OldValue);
             Assert.AreEqual("New Item 1", itemNameChange.NewValue);
 
-            var itemDetailChange = changes.First(c => c.Field == "项目列表[Old Item 1(1)].项目详情.标题");
+            var itemDetailChange = changes.First(c => c.Field == "项目列表[(1):Old Item 1].项目详情.标题");
             Assert.AreEqual("Old Detail 1", itemDetailChange.OldValue);
             Assert.AreEqual("New Detail 1", itemDetailChange.NewValue);
 
@@ -258,16 +258,16 @@ namespace ZKEACMS.AuditTrail.Test
             var changes = EntityComparer.Compare(oldValue, newValue, valueProviders);
 
             // Assert
-            Assert.IsTrue(changes.Exists(c => c.Field == "Items[Old Item 1(1)].ItemName"));
-            Assert.IsTrue(changes.Exists(c => c.Field == "Items[Old Item 1(1)].ItemDetails.Title"));
+            Assert.IsTrue(changes.Exists(c => c.Field == "Items[(1):Old Item 1].ItemName"));
+            Assert.IsTrue(changes.Exists(c => c.Field == "Items[(1):Old Item 1].ItemDetails.Title"));
             Assert.IsTrue(changes.Exists(c => c.Field == "Properties[prop1]"));
             Assert.IsTrue(changes.Exists(c => c.Field == "Properties[prop2]"));
 
-            var itemNameChange = changes.First(c => c.Field == "Items[Old Item 1(1)].ItemName");
+            var itemNameChange = changes.First(c => c.Field == "Items[(1):Old Item 1].ItemName");
             Assert.AreEqual("Old Item 1", itemNameChange.OldValue);
             Assert.AreEqual("New Item 1", itemNameChange.NewValue);
 
-            var itemDetailChange = changes.First(c => c.Field == "Items[Old Item 1(1)].ItemDetails.Title");
+            var itemDetailChange = changes.First(c => c.Field == "Items[(1):Old Item 1].ItemDetails.Title");
             Assert.AreEqual("Old Detail 1", itemDetailChange.OldValue);
             Assert.AreEqual("New Detail 1", itemDetailChange.NewValue);
 
