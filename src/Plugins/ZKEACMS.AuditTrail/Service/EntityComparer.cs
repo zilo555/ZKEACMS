@@ -25,7 +25,10 @@ namespace ZKEACMS.AuditTrail.Service
         /// <summary>
         /// Compare two entities and return changed fields
         /// </summary>
-        public static List<FieldChange> Compare<TEntity>(TEntity oldEntity, TEntity newEntity, IEnumerable<IAuditValueProvider> valueProviders = null) where TEntity : class
+        public static List<FieldChange> Compare<TEntity>(TEntity oldEntity,
+            TEntity newEntity,
+            IEnumerable<IAuditValueProvider> valueProviders = null)
+            where TEntity : class
         {
             var changes = new List<FieldChange>();
 
@@ -49,7 +52,11 @@ namespace ZKEACMS.AuditTrail.Service
         /// <summary>
         /// Recursively compare entities
         /// </summary>
-        private static void CompareRecursive(object oldObj, object newObj, string prefix, List<FieldChange> changes, IEnumerable<IAuditValueProvider> valueProviders, PropertyInfo currentPropertyInfo)
+        private static void CompareRecursive(object oldObj, object newObj,
+            string prefix,
+            List<FieldChange> changes,
+            IEnumerable<IAuditValueProvider> valueProviders,
+            PropertyInfo currentPropertyInfo)
         {
             if (oldObj == null && newObj == null)
             {
@@ -114,7 +121,12 @@ namespace ZKEACMS.AuditTrail.Service
         /// <summary>
         /// Compare collection types
         /// </summary>
-        private static void CompareCollection(object oldObj, object newObj, string fieldName, List<FieldChange> changes, IEnumerable<IAuditValueProvider> valueProviders, PropertyInfo currentPropertyInfo)
+        private static void CompareCollection(object oldObj,
+            object newObj,
+            string fieldName,
+            List<FieldChange> changes,
+            IEnumerable<IAuditValueProvider> valueProviders,
+            PropertyInfo currentPropertyInfo)
         {
             var oldList = oldObj as IEnumerable;
             var newList = newObj as IEnumerable;
@@ -153,7 +165,7 @@ namespace ZKEACMS.AuditTrail.Service
             // Check if elementType is a simple type (value type or string)
             if (IsSimpleType(elementType))
             {
-                CompareSimpleElements(fieldName, changes, oldItems, newItems);
+                CompareSimpleElements(fieldName, changes, oldItems, newItems, valueProviders, currentPropertyInfo);
                 return;
             }
 
@@ -213,7 +225,12 @@ namespace ZKEACMS.AuditTrail.Service
             }
         }
 
-        private static void CompareSimpleElements(string fieldName, List<FieldChange> changes, List<object> oldItems, List<object> newItems)
+        private static void CompareSimpleElements(string fieldName,
+            List<FieldChange> changes,
+            List<object> oldItems,
+            List<object> newItems,
+            IEnumerable<IAuditValueProvider> valueProviders,
+            PropertyInfo currentPropertyInfo)
         {
             // Handle simple types: compare which values were added or removed
             var oldSet = new HashSet<object>(oldItems.Where(i => i != null));
@@ -227,7 +244,7 @@ namespace ZKEACMS.AuditTrail.Service
                 {
                     Field = fieldName,
                     OldValue = null,
-                    NewValue = $"{{Added}} {JsonConverter.Serialize(addedItems)}"
+                    NewValue = $"{{Added}} {SerializeValue(addedItems, currentPropertyInfo, valueProviders)}"
                 });
             }
 
@@ -238,7 +255,7 @@ namespace ZKEACMS.AuditTrail.Service
                 changes.Add(new FieldChange
                 {
                     Field = fieldName,
-                    OldValue = $"{{Removed}} {JsonConverter.Serialize(deletedItems)}",
+                    OldValue = $"{{Removed}} {SerializeValue(deletedItems, currentPropertyInfo, valueProviders)}",
                     NewValue = null
                 });
             }
@@ -338,7 +355,7 @@ namespace ZKEACMS.AuditTrail.Service
 
             return property.Name;
         }
-        
+
         public static string GetKeyAndTitle<TEntity>(TEntity item) where TEntity : class
         {
             var type = typeof(TEntity);
@@ -482,19 +499,6 @@ namespace ZKEACMS.AuditTrail.Service
         }
 
         /// <summary>
-        /// Serialize value to string
-        /// </summary>
-        public static string SerializeValue(object value)
-        {
-            if (value == null) return null;
-
-            if (value is string str) return str;
-            if (value is DateTime dt) return dt.ToString("yyyy-MM-dd HH:mm:ss");
-
-            return value.ToString();
-        }
-
-        /// <summary>
         /// Serialize value to string with property and value providers
         /// </summary>
         private static string SerializeValue(object value, PropertyInfo propertyInfo = null, IEnumerable<IAuditValueProvider> valueProviders = null)
@@ -513,8 +517,11 @@ namespace ZKEACMS.AuditTrail.Service
                     return provider.GetDisplayValue(propertyInfo, value);
                 }
             }
-
-            return value.ToString();
+            if (IsSimpleType(value.GetType()))
+            {
+                return value.ToString();
+            }
+            return JsonConverter.Serialize(value);
         }
 
         /// <summary>
