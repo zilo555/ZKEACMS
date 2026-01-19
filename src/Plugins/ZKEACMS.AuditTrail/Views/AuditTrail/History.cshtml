@@ -11,6 +11,34 @@
         html body {
             background: #fff;
         }
+
+        .diff-added {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 1px 2px;
+            border-radius: 2px;
+        }
+
+        .diff-removed {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 1px 2px;
+            border-radius: 2px;
+        }
+
+        .old-value-cell,
+        .new-value-cell {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 400px;
+            white-space: nowrap;
+        }
+
+        tr.open .old-value-cell,
+        tr.open .new-value-cell {
+            overflow: visible;
+            white-space: normal;
+        }
     </style>
 }
 <div style="background:#fff">
@@ -29,30 +57,42 @@
                 @foreach (var record in Model)
                 {
                     var changes = JsonConverter.Deserialize<Easy.AuditTrail.FieldChange[]>(record.Changes ?? "[]");
-                    if (changes.Length > 0)
+                    for (int i = 0; i < changes.Length; i++)
                     {
-                        for (int i = 0; i < changes.Length; i++)
-                        {
-                            var change = changes[i];
-                            <tr>
-                                <td>@change.Field</td>
-                                <td class="text-muted">@change.OldValue</td>
-                                <td class="text-success">@change.NewValue</td>
-                                @if (i == 0)
-                                {
-                                    <td rowspan="@changes.Length">@record.CreatebyName</td>
-                                    <td rowspan="@changes.Length">@record.CreateDate.Value.ToString("yyyy-MM-dd HH:mm:ss")</td>
-                                }
-                            </tr>
-                        }
-                    }
-                    else
-                    {
+                        var change = changes[i];
                         <tr>
-                            <td colspan="3"><em>No changes</em></td>
-                            <td>@record.IPAddress</td>
-                            <td>@record.CreatebyName</td>
-                            <td>@record.CreateDate.Value.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            <td>@change.Field</td>
+                            <td>
+                                @if (change.OldValue != null)
+                                {
+                                    <div class="old-value-cell">@change.OldValue</div>
+                                }
+                            </td>
+                            <td>
+                                @if (change.ChangeType == (int)Easy.AuditTrail.AuditChangeType.Added)
+                                {
+                                    <span class="label label-success">
+                                        <code class="small">@L("Add")</code>
+                                        <span class="text-success">@change.NewValue</span>
+                                    </span>
+                                }
+                                else if (change.ChangeType == (int)Easy.AuditTrail.AuditChangeType.Deleted)
+                                {
+                                    <span class="label label-danger">
+                                        <code class="small">@L("Delete")</code>
+                                        <del class="text-danger">@change.NewValue</del>
+                                    </span>
+                                }
+                                else
+                                {
+                                    <div class="new-value-cell">@change.NewValue</div>
+                                }
+                            </td>
+                            @if (i == 0)
+                            {
+                                <td rowspan="@changes.Length">@record.CreatebyName</td>
+                                <td rowspan="@changes.Length">@record.CreateDate.Value.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            }
                         </tr>
                     }
                 }
@@ -64,3 +104,116 @@
         await Html.Pagin((ZKEACMS.Pagin)ViewBag.Pagin);
     }
 </div>
+@using (Script.AtFoot())
+{
+    <script type="text/javascript">
+        function diffText(oldText, newText) {
+            const oldTokens = tokenizeText(oldText);
+            const newTokens = tokenizeText(newText);
+
+            const m = oldTokens.length;
+            const n = newTokens.length;
+
+            const dp = Array(m + 1).fill().map(() => Array(n + 1).fill(0));
+
+            for (let i = 1; i <= m; i++) {
+                for (let j = 1; j <= n; j++) {
+                    if (oldTokens[i - 1] === newTokens[j - 1]) {
+                        dp[i][j] = dp[i - 1][j - 1] + 1;
+                    } else {
+                        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                    }
+                }
+            }
+
+            let i = m, j = n;
+            const oldResult = [];
+            const newResult = [];
+
+            while (i > 0 || j > 0) {
+                if (i > 0 && j > 0 && oldTokens[i - 1] === newTokens[j - 1]) {
+                    oldResult.unshift({ text: oldTokens[i - 1], type: 'same' });
+                    newResult.unshift({ text: newTokens[j - 1], type: 'same' });
+                    i--;
+                    j--;
+                } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+                    newResult.unshift({ text: newTokens[j - 1], type: 'added' });
+                    j--;
+                } else if (i > 0 && (j === 0 || dp[i][j - 1] < dp[i - 1][j])) {
+                    oldResult.unshift({ text: oldTokens[i - 1], type: 'removed' });
+                    i--;
+                }
+            }
+
+            return {
+                oldResult: mergeAdjacentTokens(oldResult),
+                newResult: mergeAdjacentTokens(newResult)
+            };
+        }
+
+        function tokenizeText(text) {
+            const tokenRegex = /(\s+|[^\w\s]|\w+)/g;
+            const tokens = [];
+            let match;
+
+            while ((match = tokenRegex.exec(text)) !== null) {
+                tokens.push(match[0]);
+            }
+
+            return tokens;
+        }
+
+        function mergeAdjacentTokens(tokens) {
+            if (tokens.length === 0) return [];
+
+            const result = [];
+            let currentToken = { ...tokens[0] };
+
+            for (let i = 1; i < tokens.length; i++) {
+                if (tokens[i].type === currentToken.type) {
+                    currentToken.text += tokens[i].text;
+                } else {
+                    result.push(currentToken);
+                    currentToken = { ...tokens[i] };
+                }
+            }
+
+            result.push(currentToken);
+            return result;
+        }
+
+        function tokensToHtml(tokens) {
+            return tokens.map(token => {
+                let className = '';
+                switch (token.type) {
+                    case 'added':
+                        return `<span class="diff-added">${token.text}</span>`;
+                    case 'removed':
+                        return `<span class="diff-removed">${token.text}</span>`;
+                    case 'same':
+                        return `<span>${token.text}</span>`;
+                    default:
+                        return `<span>${token.text}</span>`;
+                }
+            }).join('');
+        }
+
+        $(function () {
+            $("tr").click(function () {
+                $(this).toggleClass("open");
+            });
+            $('tr').each(function () {
+                const oldValueCell = $(this).find('.old-value-cell');
+                const newValueCell = $(this).find('.new-value-cell');
+
+                const oldText = $.trim(oldValueCell.html());
+                const newText = $.trim(newValueCell.html());
+                if (oldText && newText) {
+                    const diffResult = diffText(oldText, newText);
+                    newValueCell.html(tokensToHtml(diffResult.newResult));
+                    oldValueCell.html(tokensToHtml(diffResult.oldResult));
+                }
+            });
+        });
+    </script>
+}

@@ -194,8 +194,8 @@ namespace ZKEACMS.AuditTrail.Service
                     changes.Add(new FieldChange
                     {
                         Field = fieldName,
-                        OldValue = null,
-                        NewValue = $"{{Added}} {keyAndTitle}"
+                        ChangeType = (int)AuditChangeType.Added,
+                        NewValue = keyAndTitle
                     });
                 }
                 else if (!newDict.ContainsKey(key))
@@ -206,8 +206,8 @@ namespace ZKEACMS.AuditTrail.Service
                     changes.Add(new FieldChange
                     {
                         Field = fieldName,
-                        OldValue = $"{{Removed}} {keyAndTitle}",
-                        NewValue = null
+                        ChangeType = (int)AuditChangeType.Deleted,
+                        NewValue = keyAndTitle
                     });
                 }
                 else
@@ -237,26 +237,26 @@ namespace ZKEACMS.AuditTrail.Service
             var newSet = new HashSet<object>(newItems.Where(i => i != null));
 
             // Find items that were added
-            var addedItems = newSet.Except(oldSet);
+            var addedItems = newSet.Except(oldSet).ToList();
             if (addedItems.Any())
             {
                 changes.Add(new FieldChange
                 {
                     Field = fieldName,
-                    OldValue = null,
-                    NewValue = $"{{Added}} {SerializeValue(addedItems, currentPropertyInfo, valueProviders)}"
+                    ChangeType = (int)AuditChangeType.Added,
+                    NewValue = SerializeValue(addedItems, currentPropertyInfo, valueProviders)
                 });
             }
 
             // Find items that were removed
-            var deletedItems = oldSet.Except(newSet);
+            var deletedItems = oldSet.Except(newSet).ToList();
             if (deletedItems.Any())
             {
                 changes.Add(new FieldChange
                 {
                     Field = fieldName,
-                    OldValue = $"{{Removed}} {SerializeValue(deletedItems, currentPropertyInfo, valueProviders)}",
-                    NewValue = null
+                    ChangeType = (int)AuditChangeType.Deleted,
+                    NewValue = SerializeValue(deletedItems, currentPropertyInfo, valueProviders)
                 });
             }
         }
