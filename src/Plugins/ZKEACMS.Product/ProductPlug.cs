@@ -179,6 +179,8 @@ namespace ZKEACMS.Product
             serviceCollection.ConfigureMetaData<ProductDetailWidget, ProductDetailWidgetMetaData>();
             serviceCollection.ConfigureMetaData<ProductListWidget, ProductListWidgetMetaData>();
             serviceCollection.ConfigureMetaData<ProductGalleryWidget, ProductGalleryWidgetMetaData>();
+
+            serviceCollection.AddAuditValueProvider<ProductCategoryAuditValueProvider>();
         }
 
     }

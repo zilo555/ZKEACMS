@@ -207,7 +207,7 @@ namespace ZKEACMS.AuditTrail.Service
                     {
                         Field = fieldName,
                         ChangeType = (int)AuditChangeType.Deleted,
-                        NewValue = keyAndTitle
+                        OldValue = keyAndTitle
                     });
                 }
                 else
@@ -256,7 +256,7 @@ namespace ZKEACMS.AuditTrail.Service
                 {
                     Field = fieldName,
                     ChangeType = (int)AuditChangeType.Deleted,
-                    NewValue = SerializeValue(deletedItems, currentPropertyInfo, valueProviders)
+                    OldValue = SerializeValue(deletedItems, currentPropertyInfo, valueProviders)
                 });
             }
         }
