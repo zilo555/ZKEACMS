@@ -1,0 +1,17 @@
+CREATE TABLE IF NOT EXISTS `AuditTrail` (
+	`ID` INT AUTO_INCREMENT NOT NULL,
+	`EntityType` VARCHAR(100) NOT NULL,
+	`EntityID` CHAR(50) NOT NULL,
+	`IPAddress` CHAR(10) NULL,
+	`Changes` LONGTEXT NULL,
+	`Title` VARCHAR(200) NULL,
+	`Description` VARCHAR(500) NULL,
+	`Status` INT NULL,
+	`CreateBy` VARCHAR(50) NULL,
+	`CreatebyName` VARCHAR(100) NULL,
+	`CreateDate` DATETIME(6) NULL,
+	`LastUpdateBy` VARCHAR(50) NULL,
+	`LastUpdateByName` VARCHAR(100) NULL,
+	`LastUpdateDate` DATETIME(6) NULL,
+	CONSTRAINT `PK_AuditTrail` PRIMARY KEY (`ID`)
+);

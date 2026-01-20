@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS AuditTrail (
+	ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	EntityType TEXT NOT NULL,
+	EntityID TEXT NOT NULL,
+	IPAddress TEXT NULL,
+	Changes TEXT NULL,
+	Title TEXT NULL,
+	Description TEXT NULL,
+	Status INTEGER NULL,
+	CreateBy TEXT NULL,
+	CreatebyName TEXT NULL,
+	CreateDate TEXT NULL,
+	LastUpdateBy TEXT NULL,
+	LastUpdateByName TEXT NULL,
+	LastUpdateDate TEXT NULL
+);
