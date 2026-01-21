@@ -138,6 +138,8 @@ namespace ZKEACMS.Product.Service
                         _productImageService.EndBulkSave();
                     }
                     var newProduct = Get(item.ID);
+                    oldProduct.ProductTags=oldProduct.ProductTags.Where(m=>m.Selected).ToList();
+                    newProduct.ProductTags = newProduct.ProductTags.Where(m => m.Selected).ToList();
                     _auditTrailService.LogUpdate(oldProduct, newProduct);
                 }
             });
