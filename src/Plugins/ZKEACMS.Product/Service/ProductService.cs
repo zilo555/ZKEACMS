@@ -140,7 +140,7 @@ namespace ZKEACMS.Product.Service
                     var newProduct = Get(item.ID);
                     oldProduct.ProductTags=oldProduct.ProductTags.Where(m=>m.Selected).ToList();
                     newProduct.ProductTags = newProduct.ProductTags.Where(m => m.Selected).ToList();
-                    _auditTrailService.LogUpdate(oldProduct, newProduct);
+                    _auditTrailService.AuditUpdate(oldProduct, newProduct);
                 }
             });
             _eventManager.Trigger(Events.OnProductUpdated, item);

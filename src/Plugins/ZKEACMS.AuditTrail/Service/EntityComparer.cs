@@ -390,7 +390,27 @@ namespace ZKEACMS.AuditTrail.Service
                 return "";
             }
 
-            var keyValues = keyProperties.Select(prop => prop.GetValue(item)?.ToString()).ToArray();
+            var keyValues = keyProperties.Select(prop =>
+            {
+                var value = prop.GetValue(item);
+                if (value == null) return null;
+
+                var valueType = value.GetType();
+                if (IsSimpleType(valueType))
+                {
+                    return value.ToString();
+                }
+                var childKeys = valueType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(child => child.GetCustomAttribute<AuditKeyAttribute>() != null)
+                .OrderBy(child => child.GetCustomAttribute<AuditKeyAttribute>().Order)
+                .ToArray();
+
+                if (childKeys.Length == 0) throw new InvalidOperationException($"Key property '{prop.Name}' of type '{valueType.Name}' must have at least one property marked with [AuditKey] attribute for auditing.");
+
+                return GetCombinedKeyValue(childKeys, value);
+            }).Where(m => m != null)
+            .ToArray();
+
             return string.Join("|", keyValues); // Using pipe as separator for composite keys
         }
 
@@ -404,7 +424,25 @@ namespace ZKEACMS.AuditTrail.Service
                 return "";
             }
 
-            var titleValues = titleProperties.Select(prop => prop.GetValue(item)?.ToString()).Where(v => v != null).ToArray();
+            var titleValues = titleProperties.Select(prop =>
+            {
+                var value = prop.GetValue(item);
+                if (value == null) return null;
+
+                var valueType = value.GetType();
+                if (IsSimpleType(valueType))
+                {
+                    return value.ToString();
+                }
+                var childKeys = valueType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(child => child.GetCustomAttribute<AuditTitleAttribute>() != null)
+                .OrderBy(child => child.GetCustomAttribute<AuditTitleAttribute>().Order)
+                .ToArray();
+
+                if (childKeys.Length == 0) throw new InvalidOperationException($"Title property '{prop.Name}' of type '{valueType.Name}' must have at least one property marked with [AuditTitle] attribute for auditing.");
+
+                return GetCombinedTitleValue(childKeys, value);
+            }).Where(v => v != null).ToArray();
             return string.Join(", ", titleValues); // Using comma space to join title parts
         }
 

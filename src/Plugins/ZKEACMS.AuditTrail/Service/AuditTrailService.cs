@@ -39,7 +39,7 @@ namespace ZKEACMS.AuditTrail.Service
 
         #region Record data changes
 
-        public void LogCreate<TEntity>(TEntity entity, string remark = null) where TEntity : class
+        public void AuditCreate<TEntity>(TEntity entity, string remark = null) where TEntity : class
         {
             if (entity == null) return;
 
@@ -61,7 +61,7 @@ namespace ZKEACMS.AuditTrail.Service
             Add(record);
         }
 
-        public void LogUpdate<TEntity>(TEntity oldEntity, TEntity newEntity, string remark = null) where TEntity : class
+        public void AuditUpdate<TEntity>(TEntity oldEntity, TEntity newEntity, string remark = null) where TEntity : class
         {
             if (oldEntity == null || newEntity == null) return;
 
@@ -80,7 +80,7 @@ namespace ZKEACMS.AuditTrail.Service
             Add(record);
         }
 
-        public void LogDelete<TEntity>(TEntity entity, string remark = null) where TEntity : class
+        public void AuditDelete<TEntity>(TEntity entity, string remark = null) where TEntity : class
         {
             if (entity == null) return;
 

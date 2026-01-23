@@ -60,6 +60,11 @@ namespace Easy
             get { return _ruleViolations.Any(m => m is Error); }
         }
 
+        public bool IsSuccess
+        {
+            get { return !HasError; }
+        }
+
         public IEnumerable<Error> Errors
         {
             get

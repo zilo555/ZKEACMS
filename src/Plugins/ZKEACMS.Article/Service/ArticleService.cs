@@ -56,7 +56,7 @@ namespace ZKEACMS.Article.Service
                 return new Error("Url", _localize.Get("URL already exists"));
             }
             _eventManager.Trigger(Events.OnArticleUpdating, item);
-            _auditTrailService.LogUpdate(Get(item.ID), item);
+            _auditTrailService.AuditUpdate(Get(item.ID), item);
             result = base.Update(item);
             if (!result.HasError)
             {
