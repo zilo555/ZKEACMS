@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using ZKEACMS.Common.Models;
+using Easy.AuditTrail;
 
 namespace ZKEACMS.Article.Service
 {
@@ -18,11 +19,17 @@ namespace ZKEACMS.Article.Service
     {
         private readonly IArticleService _articleService;
         private readonly ILocalize _localize;
-        public ArticleTypeService(IApplicationContext applicationContext, IArticleService articleService, ILocalize localize, CMSDbContext dbContext)
+        private readonly IAuditTrailService _auditTrailService;
+        public ArticleTypeService(IApplicationContext applicationContext, 
+            IArticleService articleService, 
+            ILocalize localize, 
+            CMSDbContext dbContext, 
+            IAuditTrailService auditTrailService)
             : base(applicationContext, dbContext)
         {
             _articleService = articleService;
             _localize = localize;
+            _auditTrailService = auditTrailService;
         }
 
         public override ErrorOr<ArticleType> Add(ArticleType item)
@@ -40,7 +47,13 @@ namespace ZKEACMS.Article.Service
             {
                 return new Error("Url", _localize.Get("URL already exists"));
             }
-            return base.Update(item);
+            var oldItem = Get(item.ID);
+            var result = base.Update(item);
+            if (result.IsSuccess)
+            {
+                _auditTrailService.AuditUpdate(oldItem, item);
+            }
+            return result;
         }
         public ArticleType GetByUrl(string url)
         {
