@@ -33,6 +33,7 @@ namespace Easy
         /// <summary>
         /// Dameng DB
         /// </summary>
-        DM = 6
+        DM = 6,
+        OceanBase = 7
     }
 }

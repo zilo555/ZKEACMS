@@ -44,6 +44,7 @@ namespace ZKEACMS
                             optionsBuilder.UseSqlite(_dataBaseOption.ConnectionString);
                         break;
                     }
+                case Easy.DbTypes.OceanBase:
                 case Easy.DbTypes.MySql:
                     {
                         if (dbConnectionForReusing != null)
