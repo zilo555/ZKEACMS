@@ -1,16 +1,17 @@
-CREATE TABLE IF NOT EXISTS AuditTrail (
-	ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-	EntityType TEXT NOT NULL,
-	EntityID TEXT NOT NULL,
-	IPAddress TEXT NULL,
-	Changes TEXT NULL,
-	Title TEXT NULL,
-	Description TEXT NULL,
-	Status INTEGER NULL,
-	CreateBy TEXT NULL,
-	CreatebyName TEXT NULL,
-	CreateDate TEXT NULL,
-	LastUpdateBy TEXT NULL,
-	LastUpdateByName TEXT NULL,
-	LastUpdateDate TEXT NULL
+CREATE TABLE [AuditTrail] (
+  [ID] INTEGER NOT NULL
+, [EntityType] nvarchar(100) NOT NULL
+, [EntityID] nchar(50) NOT NULL
+, [IPAddress] nchar(10) NULL
+, [Changes] ntext NULL
+, [Title] nvarchar(200) NULL
+, [Description] nvarchar(500) NULL
+, [Status] int NULL
+, [CreateBy] nvarchar(50) NULL
+, [CreatebyName] nvarchar(100) NULL
+, [CreateDate] datetime NULL
+, [LastUpdateBy] nvarchar(50) NULL
+, [LastUpdateByName] nvarchar(100) NULL
+, [LastUpdateDate] datetime NULL
+, CONSTRAINT [PK_AuditTrail] PRIMARY KEY ([ID])
 );

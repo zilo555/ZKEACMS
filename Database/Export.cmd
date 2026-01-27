@@ -14,7 +14,7 @@ REM:https://github.com/microsoft/mssql-scripter/blob/dev/doc/usage_guide.md
 @echo Press Enter to use the default setting
 @echo Working directory:%cd%
 set /P server=1.Sql Server address (local):
-if "%server%"=="" set server=(local)
+if "%server%"=="" set server=127.0.0.1
 set /P dataBase=2.Database name (ZKEACMS):
 if "%dataBase%"=="" set dataBase=ZKEACMS
 set /P dbUserId=3.User name (sa):
