@@ -3,6 +3,7 @@
  * http://www.zkea.net/licenses */
 
 using System.Collections.Generic;
+using Easy.AuditTrail;
 using Easy.Extend;
 using Easy.RepositoryPattern;
 using ZKEACMS.Product.Models;
@@ -18,16 +19,20 @@ namespace ZKEACMS.Product.Service
         private readonly IProductService _productService;
         private readonly IProductCategoryTagService _productCategoryTagService;
         private readonly ILocalize _localize;
+        private readonly IAuditTrailService _auditTrailService;
+
         public ProductCategoryService(IProductService productService,
             IApplicationContext applicationContext,
             IProductCategoryTagService productCategoryTagService,
             ILocalize localize,
+            IAuditTrailService auditTrailService,
             CMSDbContext dbContext)
             : base(applicationContext, dbContext)
         {
             _productService = productService;
             _productCategoryTagService = productCategoryTagService;
             _localize = localize;
+            _auditTrailService = auditTrailService;
         }
         public override ErrorOr<ProductCategory> Add(ProductCategory item)
         {
@@ -39,11 +44,21 @@ namespace ZKEACMS.Product.Service
         }
         public override ErrorOr<ProductCategory> Update(ProductCategory item)
         {
+            var existed = Get(item.ID);
             if (item.Url.IsNotNullAndWhiteSpace() && Count(m => m.Url == item.Url && m.ID != item.ID) > 0)
             {
                 return new Error("Url", _localize.Get("URL already exists"));
             }
-            return base.Update(item);
+            var result = base.Update(item);
+
+            if (result.HasError)
+            {
+                return result;
+            }
+
+            _auditTrailService.AuditUpdate(existed, item);
+
+            return result;
         }
         public ProductCategory GetByUrl(string url)
         {
