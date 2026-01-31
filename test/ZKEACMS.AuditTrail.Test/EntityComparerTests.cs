@@ -11,8 +11,6 @@ using System.Linq;
 using ZKEACMS.AuditTrail.Service;
 using ZKEACMS.Common.Models;
 
-[assembly: Parallelize(Workers = 0, Scope = ExecutionScope.MethodLevel)]
-
 namespace ZKEACMS.AuditTrail.Test
 {
     [TestClass]
@@ -358,7 +356,7 @@ namespace ZKEACMS.AuditTrail.Test
             // Assert
             Assert.HasCount(1, changes);
             Assert.AreEqual("Items", changes[0].Field);
-            Assert.AreEqual("{Added} (2):Product2", changes[0].NewValue);
+            Assert.AreEqual("(2):Product2", changes[0].NewValue);
             Assert.IsNull(changes[0].OldValue);
         }
 
@@ -392,7 +390,7 @@ namespace ZKEACMS.AuditTrail.Test
             // Assert
             Assert.HasCount(1, changes);
             Assert.AreEqual("Items", changes[0].Field);
-            Assert.AreEqual("{Removed} (2):Product2", changes[0].OldValue);
+            Assert.AreEqual("(2):Product2", changes[0].OldValue);
             Assert.IsNull(changes[0].NewValue);
         }
 
@@ -473,7 +471,7 @@ namespace ZKEACMS.AuditTrail.Test
             // Assert
             Assert.HasCount(1, changes);
             Assert.AreEqual("Items", changes[0].Field);
-            Assert.AreEqual("{Added} (1):Product1", changes[0].NewValue);
+            Assert.AreEqual("(1):Product1", changes[0].NewValue);
         }
 
         #endregion
@@ -617,7 +615,7 @@ namespace ZKEACMS.AuditTrail.Test
             Assert.IsTrue(changes.Exists(c => c.Field == "Employees"));
             var addedChange = changes.First(c => c.Field == "Employees");
             Assert.IsNull(addedChange.OldValue);
-            Assert.AreEqual("{Added} (2|IT):Jane, Smith", addedChange.NewValue); // Composite key: "2|IT" and composite title: "Jane, Smith"
+            Assert.AreEqual("(2|IT):Jane, Smith", addedChange.NewValue); // Composite key: "2|IT" and composite title: "Jane, Smith"
         }
 
         [TestMethod]
@@ -672,7 +670,7 @@ namespace ZKEACMS.AuditTrail.Test
             Assert.IsTrue(changes.Exists(c => c.Field == "Employees"));
             var removedChange = changes.First(c => c.Field == "Employees");
             Assert.IsNull(removedChange.NewValue);
-            Assert.AreEqual("{Removed} (2|IT):Jane, Smith", removedChange.OldValue); // Composite key: "2|IT" and composite title: "Jane, Smith"
+            Assert.AreEqual("(2|IT):Jane, Smith", removedChange.OldValue); // Composite key: "2|IT" and composite title: "Jane, Smith"
         }
 
         [TestMethod]
