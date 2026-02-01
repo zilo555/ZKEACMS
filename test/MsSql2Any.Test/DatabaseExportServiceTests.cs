@@ -13,24 +13,24 @@ namespace MsSql2Any.Test
         [TestMethod]
         public async Task TestDatabaseExportServiceWithMockData()
         {
-            // 创建临时输出目录
+            // Create temporary output directory
             var outputDir = Path.Combine(Path.GetTempPath(), "MsSql2Any_Test_Output_" + Guid.NewGuid().ToString());
             Directory.CreateDirectory(outputDir);
 
             try
             {
-                // 创建模拟配置
+                // Create mock configuration
                 var mockConfig = new AppConfig
                 {
                     SourceConnectionString = "mock_connection_string",
-                    OutputDirectory = outputDir, // 使用临时目录
+                    OutputDirectory = outputDir, // Using temporary directory
                     BatchSize = 1000
                 };
 
-                // 创建模拟数据库提供者
+                // Create mock database provider
                 var mockDbProvider = new Mock<ISourceDbProvider>();
 
-                // 设置模拟方法的返回值
+                // Setup mock method return values
                 var tableNames = new List<string> { "Users", "Products" };
                 mockDbProvider.Setup(x => x.GetTableNamesAsync()).ReturnsAsync(tableNames);
 
@@ -79,7 +79,7 @@ namespace MsSql2Any.Test
                 mockDbProvider.Setup(x => x.GetColumnsAsync("Users")).ReturnsAsync(userColumns);
                 mockDbProvider.Setup(x => x.GetColumnsAsync("Products")).ReturnsAsync(productColumns);
 
-                // 模拟数据
+                // Mock data
                 var userData = new List<object[]> { new object[] { 1, "John Doe" }, new object[] { 2, "Jane Smith" } };
                 var productData = new List<object[]> { new object[] { 1, "Product A" }, new object[] { 2, "Product B" } };
 
@@ -89,7 +89,7 @@ namespace MsSql2Any.Test
                 mockDbProvider.Setup(x => x.GetDataAsync("Products", 1000))
                     .Returns(productData.ToAsyncEnumerable());
 
-                // 创建模拟脚本生成器
+                // Create mock script generators
                 var mockGenerators = new List<IScriptGenerator>
                 {
                     new MysqlScriptGenerator(),
@@ -98,35 +98,35 @@ namespace MsSql2Any.Test
                     new DamengScriptGenerator()
                 }.AsEnumerable();
 
-                // 创建服务实例
+                // Create service instance
                 var exportService = new DatabaseExportService(mockDbProvider.Object, mockGenerators, mockConfig);
 
-                // 执行导出操作
+                // Execute export operation
                 await exportService.ExportAsync();
 
-                // 验证模拟对象的方法被调用
+                // Verify mock object methods were called
                 mockDbProvider.Verify(x => x.Initialize("mock_connection_string"), Times.Once);
                 mockDbProvider.Verify(x => x.GetTableNamesAsync(), Times.Once);
-                // 由于DatabaseExportService为每种数据库类型都会获取表结构，所以GetColumnsAsync会被调用多次
-                mockDbProvider.Verify(x => x.GetColumnsAsync("Users"), Times.Exactly(4)); // 4种数据库类型
-                mockDbProvider.Verify(x => x.GetColumnsAsync("Products"), Times.Exactly(4)); // 4种数据库类型
-                mockDbProvider.Verify(x => x.GetDataAsync("Users", 1000), Times.Exactly(4)); // 4种数据库类型
-                mockDbProvider.Verify(x => x.GetDataAsync("Products", 1000), Times.Exactly(4)); // 4种数据库类型
+                // Since DatabaseExportService retrieves table structure for each database type, GetColumnsAsync is called multiple times
+                mockDbProvider.Verify(x => x.GetColumnsAsync("Users"), Times.Exactly(4)); // 4 database types
+                mockDbProvider.Verify(x => x.GetColumnsAsync("Products"), Times.Exactly(4)); // 4 database types
+                mockDbProvider.Verify(x => x.GetDataAsync("Users", 1000), Times.Exactly(4)); // 4 database types
+                mockDbProvider.Verify(x => x.GetDataAsync("Products", 1000), Times.Exactly(4)); // 4 database types
 
-                // 验证输出文件已创建
-                var mysqlOutputFile = Path.Combine(outputDir, "output_mysql.sql");
-                var sqliteOutputFile = Path.Combine(outputDir, "output_sqlite.sql");
-                var postgresqlOutputFile = Path.Combine(outputDir, "output_postgresql.sql");
-                var damengOutputFile = Path.Combine(outputDir, "output_dameng.sql");
+                // Verify output files were created
+                var mysqlOutputFile = Path.Combine(outputDir, "MySQL.sql");
+                var sqliteOutputFile = Path.Combine(outputDir, "SQLite.sql");
+                var postgresqlOutputFile = Path.Combine(outputDir, "PostgreSQL.sql");
+                var damengOutputFile = Path.Combine(outputDir, "Dameng.sql");
 
-                Assert.IsTrue(File.Exists(mysqlOutputFile), "MySQL输出文件应存在");
-                Assert.IsTrue(File.Exists(sqliteOutputFile), "SQLite输出文件应存在");
-                Assert.IsTrue(File.Exists(postgresqlOutputFile), "PostgreSQL输出文件应存在");
-                Assert.IsTrue(File.Exists(damengOutputFile), "达梦输出文件应存在");
+                Assert.IsTrue(File.Exists(mysqlOutputFile), "MySQL output file should exist");
+                Assert.IsTrue(File.Exists(sqliteOutputFile), "SQLite output file should exist");
+                Assert.IsTrue(File.Exists(postgresqlOutputFile), "PostgreSQL output file should exist");
+                Assert.IsTrue(File.Exists(damengOutputFile), "Dameng output file should exist");
             }
             finally
             {
-                // 清理临时目录
+                // Clean up temporary directory
                 if (Directory.Exists(outputDir))
                 {
                     Directory.Delete(outputDir, true);
@@ -224,7 +224,7 @@ namespace MsSql2Any.Test
         }
     }
 
-    // 辅助扩展方法，用于将列表转换为异步可枚举对象
+    // Helper extension method to convert a list to an asynchronous enumerable
     public static class TestExtensions
     {
         public static async IAsyncEnumerable<T> ToAsyncEnumerable<T>(this IEnumerable<T> source)
@@ -232,7 +232,7 @@ namespace MsSql2Any.Test
             foreach (var item in source)
             {
                 yield return item;
-                await Task.Yield(); // 允许异步操作继续
+                await Task.Yield(); // Allow async operation to continue
             }
         }
     }

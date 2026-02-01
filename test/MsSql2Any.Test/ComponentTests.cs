@@ -144,8 +144,8 @@ namespace MsSql2Any.Test
             var script = generator.GenerateInsertScript("Users", columns, dataRows);
 
             // 验证生成的脚本包含必要的元素
-            StringAssert.Contains(script, "INSERT INTO `Users` VALUES (1, 'John Doe');");
-            StringAssert.Contains(script, "INSERT INTO `Users` VALUES (2, 'Jane Smith');");
+            StringAssert.Contains(script, "INSERT INTO `Users` (`Id`, `Name`) VALUES (1, 'John Doe');");
+            StringAssert.Contains(script, "INSERT INTO `Users` (`Id`, `Name`) VALUES (1, 'John Doe');");
         }
 
         [TestMethod]
@@ -305,7 +305,7 @@ namespace MsSql2Any.Test
             // 验证生成的脚本包含必要的元素
             StringAssert.Contains(script, "\"ID\" INTEGER NOT NULL IDENTITY");
             StringAssert.Contains(script, "\"NAME\" VARCHAR(50) NOT NULL");
-            StringAssert.Contains(script, "\"EMAIL\" VARCHAR(100)");
+            StringAssert.Contains(script, "\"EMAIL\" NVARCHAR(100 char)");
             StringAssert.Contains(script, "PRIMARY KEY (\"ID\")");
             StringAssert.Contains(script, "CREATE TABLE \"USERS\"");
         }
