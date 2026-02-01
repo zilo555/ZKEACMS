@@ -48,6 +48,15 @@ public class DamengScriptGenerator : IScriptGenerator
     {
         var script = new System.Text.StringBuilder();
 
+        // Check if there are identity columns
+        var identityColumns = columns.Where(c => c.IsIdentity).ToList();
+
+        if (identityColumns.Any())
+        {
+            // If there are identity columns, we need to enable IDENTITY_INSERT
+            script.AppendLine($"SET IDENTITY_INSERT \"{tableName.ToUpper()}\" ON;");
+        }
+
         foreach (var row in dataRows)
         {
             var values = new List<string>();
@@ -56,7 +65,22 @@ public class DamengScriptGenerator : IScriptGenerator
                 values.Add(FormatValue(row[i], columns[i].DataType));
             }
 
-            script.AppendLine($"INSERT INTO \"{tableName.ToUpper()}\" VALUES ({string.Join(", ", values)});");
+            // If there are identity columns, we need to specify column names
+            if (identityColumns.Any())
+            {
+                var columnNames = string.Join(", ", columns.Select(c => $"\"{c.Name.ToUpper()}\""));
+                script.AppendLine($"INSERT INTO \"{tableName.ToUpper()}\" ({columnNames}) VALUES ({string.Join(", ", values)});");
+            }
+            else
+            {
+                script.AppendLine($"INSERT INTO \"{tableName.ToUpper()}\" VALUES ({string.Join(", ", values)});");
+            }
+        }
+
+        if (identityColumns.Any())
+        {
+            // If there are identity columns, we need to disable IDENTITY_INSERT
+            script.AppendLine($"SET IDENTITY_INSERT \"{tableName.ToUpper()}\" OFF;");
         }
 
         return script.ToString();
@@ -93,7 +117,7 @@ public class DamengScriptGenerator : IScriptGenerator
                 ? $"VARCHAR({column.MaxLength})"
                 : "TEXT", 
             "nvarchar" => column.MaxLength > 0
-                ? $"VARCHAR({column.MaxLength})" // In Dameng, NVARCHAR is similar to VARCHAR
+                ? $"NVARCHAR({column.MaxLength} char)"
                 : "TEXT",
             "text" => "TEXT",
             "ntext" => "TEXT", // In Dameng, NTEXT is similar to TEXT

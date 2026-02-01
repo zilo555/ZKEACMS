@@ -44,7 +44,7 @@ public class SqliteScriptGenerator : IScriptGenerator
     public string GenerateInsertScript(string tableName, List<ColumnInfo> columns, IEnumerable<object[]> dataRows)
     {
         var script = new System.Text.StringBuilder();
-        
+
         foreach (var row in dataRows)
         {
             var values = new List<string>();
@@ -52,10 +52,20 @@ public class SqliteScriptGenerator : IScriptGenerator
             {
                 values.Add(FormatValue(row[i], columns[i].DataType));
             }
-            
-            script.AppendLine($"INSERT INTO [{tableName}] VALUES ({string.Join(", ", values)});");
+
+            // For SQLite, if there are identity/rowid columns, we might want to specify column names
+            var identityColumns = columns.Where(c => c.IsIdentity).ToList();
+            if (identityColumns.Any())
+            {
+                var columnNames = string.Join(", ", columns.Select(c => $"[{c.Name}]"));
+                script.AppendLine($"INSERT INTO [{tableName}] ({columnNames}) VALUES ({string.Join(", ", values)});");
+            }
+            else
+            {
+                script.AppendLine($"INSERT INTO [{tableName}] VALUES ({string.Join(", ", values)});");
+            }
         }
-        
+
         return script.ToString();
     }
 

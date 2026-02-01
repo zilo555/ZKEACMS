@@ -44,7 +44,7 @@ public class PostgreSqlScriptGenerator : IScriptGenerator
     public string GenerateInsertScript(string tableName, List<ColumnInfo> columns, IEnumerable<object[]> dataRows)
     {
         var script = new System.Text.StringBuilder();
-        
+
         foreach (var row in dataRows)
         {
             var values = new List<string>();
@@ -52,10 +52,20 @@ public class PostgreSqlScriptGenerator : IScriptGenerator
             {
                 values.Add(FormatValue(row[i], columns[i].DataType));
             }
-            
-            script.AppendLine($"INSERT INTO \"{tableName}\" VALUES ({string.Join(", ", values)});");
+
+            // For PostgreSQL, if there are identity/serial columns, we might want to specify column names
+            var identityColumns = columns.Where(c => c.IsIdentity).ToList();
+            if (identityColumns.Any())
+            {
+                var columnNames = string.Join(", ", columns.Select(c => $"\"{c.Name}\""));
+                script.AppendLine($"INSERT INTO \"{tableName}\" ({columnNames}) VALUES ({string.Join(", ", values)});");
+            }
+            else
+            {
+                script.AppendLine($"INSERT INTO \"{tableName}\" VALUES ({string.Join(", ", values)});");
+            }
         }
-        
+
         return script.ToString();
     }
 
@@ -68,7 +78,7 @@ public class PostgreSqlScriptGenerator : IScriptGenerator
             "bigint" => "BIGINT",
             "smallint" => "SMALLINT",
             "tinyint" => "SMALLINT", // PostgreSQL does not have TINYINT, use SMALLINT
-            "bit" => column.MaxLength == 1 ? "BOOLEAN" : $"BIT({column.MaxLength})", // If single bit, map to boolean
+            "bit" => "BOOLEAN", // PostgreSQL uses BOOLEAN for bit-like values, BIT requires a length
             "decimal" => column.Scale > 0 
                 ? $"DECIMAL({column.Precision}, {column.Scale})" 
                 : $"DECIMAL({column.Precision})",
