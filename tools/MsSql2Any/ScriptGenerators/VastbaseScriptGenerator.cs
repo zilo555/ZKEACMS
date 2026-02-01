@@ -126,11 +126,11 @@ public class VastbaseScriptGenerator : IScriptGenerator
             "char" or "nchar" or "varchar" or "nvarchar" or
             "text" or "ntext" or "xml" or "uniqueidentifier" =>
                 $"'{EscapeString(value.ToString())}'",
-            "datetime" or "datetime2" or "smalldatetime" or "date" or "time" => FormatDateTimeValue(value),
+            "datetime" or "datetime2" or "smalldatetime" or "date" or "time" => FormatDateTimeValue(value)!,
             "binary" or "varbinary" or "image" or "rowversion" or "timestamp" =>
                 $"\\x{BitConverter.ToString((byte[])value).Replace("-", "").ToLower()}",
             "bit" => ((bool)value) ? "true" : "false",
-            _ => value.ToString()
+            _ => value.ToString() ?? string.Empty
         };
     }
 
@@ -139,10 +139,10 @@ public class VastbaseScriptGenerator : IScriptGenerator
         if (value is DateTime dateTime)
             return $"'{dateTime:yyyy-MM-dd HH:mm:ss.fff}'";
         else
-            return $"'{EscapeString(value.ToString())}'";
+            return $"'{EscapeString(value?.ToString() ?? string.Empty)}'";
     }
 
-    private string EscapeString(string input)
+    private string EscapeString(string? input)
     {
         if (string.IsNullOrEmpty(input))
             return string.Empty;

@@ -10,36 +10,36 @@ public class MysqlScriptGenerator : IScriptGenerator
     {
         var script = new System.Text.StringBuilder();
         script.AppendLine($"CREATE TABLE `{tableName}` (");
-        
+
         var columnDefs = new List<string>();
         foreach (var col in columns)
         {
             var columnDef = $"  `{col.Name}` {MapDataType(col)}";
-            
+
             if (!col.IsNullable)
                 columnDef += " NOT NULL";
-                
+
             if (!string.IsNullOrEmpty(col.DefaultValue))
             {
                 columnDef += $" DEFAULT {col.DefaultValue}";
             }
-            
+
             if (col.IsIdentity)
                 columnDef += " AUTO_INCREMENT";
-                
+
             columnDefs.Add(columnDef);
         }
-        
+
         script.Append(string.Join(",\n", columnDefs));
-        
+
         var primaryKeys = columns.Where(c => c.IsPrimaryKey).Select(c => c.Name).ToList();
         if (primaryKeys.Any())
         {
             script.Append($",\n  PRIMARY KEY (`{string.Join("`, `", primaryKeys)}`)");
         }
-        
+
         script.AppendLine("\n);");
-        
+
         return script.ToString();
     }
 
@@ -81,11 +81,11 @@ public class MysqlScriptGenerator : IScriptGenerator
             "smallint" => "SMALLINT",
             "tinyint" => "TINYINT",
             "bit" => "BIT",
-            "decimal" => column.Scale > 0 
-                ? $"DECIMAL({column.Precision}, {column.Scale})" 
+            "decimal" => column.Scale > 0
+                ? $"DECIMAL({column.Precision}, {column.Scale})"
                 : $"DECIMAL({column.Precision})",
-            "numeric" => column.Scale > 0 
-                ? $"NUMERIC({column.Precision}, {column.Scale})" 
+            "numeric" => column.Scale > 0
+                ? $"NUMERIC({column.Precision}, {column.Scale})"
                 : $"NUMERIC({column.Precision})",
             "money" => "DECIMAL(19, 4)",
             "smallmoney" => "DECIMAL(10, 4)",
@@ -98,8 +98,8 @@ public class MysqlScriptGenerator : IScriptGenerator
             "time" => "TIME",
             "char" => $"CHAR({Math.Max(1, column.MaxLength)})",
             "nchar" => $"CHAR({Math.Max(1, column.MaxLength)})",
-            "varchar" => column.MaxLength > 0 
-                ? $"VARCHAR({column.MaxLength})" 
+            "varchar" => column.MaxLength > 0
+                ? $"VARCHAR({column.MaxLength})"
                 : "TEXT",
             "nvarchar" => column.MaxLength > 0
                 ? $"VARCHAR({column.MaxLength})" // MySQL does not have NVARCHAR, use VARCHAR
@@ -107,8 +107,8 @@ public class MysqlScriptGenerator : IScriptGenerator
             "text" => "TEXT",
             "ntext" => "LONGTEXT",
             "binary" => $"BINARY({column.MaxLength})",
-            "varbinary" => column.MaxLength > 0 
-                ? $"VARBINARY({column.MaxLength})" 
+            "varbinary" => column.MaxLength > 0
+                ? $"VARBINARY({column.MaxLength})"
                 : "LONGBLOB",
             "image" => "LONGBLOB",
             "uniqueidentifier" => "CHAR(36)", // In MySQL, use CHAR(36) to store UUID
@@ -129,11 +129,11 @@ public class MysqlScriptGenerator : IScriptGenerator
             "char" or "nchar" or "varchar" or "nvarchar" or
             "text" or "ntext" or "xml" or "uniqueidentifier" =>
                 $"'{EscapeString(value.ToString())}'",
-            "datetime" or "datetime2" or "smalldatetime" or "date" or "time" => FormatDateTimeValue(value),
+            "datetime" or "datetime2" or "smalldatetime" or "date" or "time" => FormatDateTimeValue(value)!,
             "binary" or "varbinary" or "image" =>
                 $"0x{BitConverter.ToString((byte[])value).Replace("-", "")}",
             "bit" => ((bool)value) ? "1" : "0",
-            _ => value.ToString()
+            _ => value.ToString() ?? string.Empty
         };
     }
 
@@ -142,10 +142,10 @@ public class MysqlScriptGenerator : IScriptGenerator
         if (value is DateTime dateTime)
             return $"'{dateTime:yyyy-MM-dd HH:mm:ss.fff}'";
         else
-            return $"'{EscapeString(value.ToString())}'";
+            return $"'{EscapeString(value?.ToString() ?? string.Empty)}'";
     }
 
-    private string EscapeString(string input)
+    private string EscapeString(string? input)
     {
         if (string.IsNullOrEmpty(input))
             return string.Empty;

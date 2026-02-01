@@ -131,15 +131,15 @@ public class OceanBaseScriptGenerator : IScriptGenerator
             "char" or "nchar" or "varchar" or "nvarchar" or
             "text" or "ntext" or "xml" or "uniqueidentifier" or
             "datetime" or "datetime2" or "smalldatetime" or "date" or "time" =>
-                $"'{EscapeString(value.ToString())}'",
+                $"'{EscapeString(value.ToString())!}'",
             "binary" or "varbinary" or "image" or "rowversion" =>
                 $"0x{BitConverter.ToString((byte[])value).Replace("-", "")}",
             "bit" => ((bool)value) ? "1" : "0",
-            _ => value.ToString()
+            _ => value.ToString() ?? string.Empty
         };
     }
 
-    private string EscapeString(string input)
+    private string EscapeString(string? input)
     {
         if (string.IsNullOrEmpty(input))
             return string.Empty;

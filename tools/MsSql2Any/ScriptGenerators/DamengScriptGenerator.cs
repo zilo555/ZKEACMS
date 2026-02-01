@@ -96,11 +96,11 @@ public class DamengScriptGenerator : IScriptGenerator
             "smallint" => "SMALLINT",
             "tinyint" => "TINYINT",
             "bit" => "BIT",
-            "decimal" => column.Scale > 0 
-                ? $"DECIMAL({column.Precision}, {column.Scale})" 
+            "decimal" => column.Scale > 0
+                ? $"DECIMAL({column.Precision}, {column.Scale})"
                 : $"DECIMAL({column.Precision})",
-            "numeric" => column.Scale > 0 
-                ? $"NUMERIC({column.Precision}, {column.Scale})" 
+            "numeric" => column.Scale > 0
+                ? $"NUMERIC({column.Precision}, {column.Scale})"
                 : $"NUMERIC({column.Precision})",
             "money" => "DECIMAL(19, 4)",
             "smallmoney" => "DECIMAL(10, 4)",
@@ -115,7 +115,7 @@ public class DamengScriptGenerator : IScriptGenerator
             "nchar" => $"CHAR({Math.Max(1, column.MaxLength)})",
             "varchar" => column.MaxLength > 0
                 ? $"VARCHAR({column.MaxLength})"
-                : "TEXT", 
+                : "TEXT",
             "nvarchar" => column.MaxLength > 0
                 ? $"NVARCHAR({column.MaxLength} char)"
                 : "TEXT",
@@ -136,7 +136,7 @@ public class DamengScriptGenerator : IScriptGenerator
     {
         if (value == DBNull.Value)
             return "NULL";
-            
+
         return dataType.ToLower() switch
         {
             "char" or "nchar" or "varchar" or "nvarchar" or
@@ -146,7 +146,7 @@ public class DamengScriptGenerator : IScriptGenerator
             "binary" or "varbinary" or "image" or "rowversion" =>
                 $"0x{BitConverter.ToString((byte[])value).Replace("-", "")}",
             "bit" => ((bool)value) ? "1" : "0",
-            _ => value.ToString()
+            _ => value.ToString() ?? string.Empty
         };
     }
 
@@ -155,10 +155,10 @@ public class DamengScriptGenerator : IScriptGenerator
         if (value is DateTime dateTime)
             return $"'{dateTime:yyyy-MM-dd HH:mm:ss.fff}'";
         else
-            return $"'{EscapeString(value.ToString())}'";
+            return $"'{EscapeString(value?.ToString() ?? string.Empty)}'";
     }
 
-    private string EscapeString(string input)
+    private string EscapeString(string? input)
     {
         if (string.IsNullOrEmpty(input))
             return string.Empty;

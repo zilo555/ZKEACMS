@@ -97,11 +97,11 @@ public class SqliteScriptGenerator : IScriptGenerator
             "char" or "nchar" or "varchar" or "nvarchar" or
             "text" or "ntext" or "xml" or "uniqueidentifier" =>
                 $"'{EscapeString(value.ToString())}'",
-            "datetime" or "datetime2" or "smalldatetime" or "date" or "time" => FormatDateTimeValue(value),
+            "datetime" or "datetime2" or "smalldatetime" or "date" or "time" => FormatDateTimeValue(value)!,
             "binary" or "varbinary" or "image" =>
                 $"X'{BitConverter.ToString((byte[])value).Replace("-", "")}'",
             "bit" => ((bool)value) ? "1" : "0",
-            _ => value.ToString()
+            _ => value.ToString() ?? string.Empty
         };
     }
 
@@ -110,10 +110,10 @@ public class SqliteScriptGenerator : IScriptGenerator
         if (value is DateTime dateTime)
             return $"'{dateTime:yyyy-MM-dd HH:mm:ss.fff}'";
         else
-            return $"'{EscapeString(value.ToString())}'";
+            return $"'{EscapeString(value?.ToString() ?? string.Empty)}'";
     }
 
-    private string EscapeString(string input)
+    private string EscapeString(string? input)
     {
         if (string.IsNullOrEmpty(input))
             return string.Empty;
