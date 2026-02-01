@@ -35,6 +35,9 @@ static async Task MainAsync(string[] args)
     services.AddSingleton<IScriptGenerator, SqliteScriptGenerator>();
     services.AddSingleton<IScriptGenerator, PostgreSqlScriptGenerator>();
     services.AddSingleton<IScriptGenerator, DamengScriptGenerator>();
+    services.AddSingleton<IScriptGenerator, OpenGaussScriptGenerator>();
+    services.AddSingleton<IScriptGenerator, VastbaseScriptGenerator>();
+    services.AddSingleton<IScriptGenerator, OceanBaseScriptGenerator>();
     services.AddScoped<DatabaseExportService>();
 
     var serviceProvider = services.BuildServiceProvider();
