@@ -14,6 +14,7 @@ using System.Linq;
 using ZKEACMS.Widget;
 using Easy.RuleEngine;
 using Easy.Serializer;
+using Easy.AuditTrail;
 
 namespace ZKEACMS.Rule
 {
@@ -23,17 +24,20 @@ namespace ZKEACMS.Rule
         private readonly IWidgetActivator _widgetActivator;
         private readonly IRuleManager _ruleManager;
         private readonly ILocalize _localize;
+        private readonly IAuditTrailService _auditTrailService;
         public RuleService(IApplicationContext applicationContext,
             IWidgetBasePartService widgetBasePartService,
             IWidgetActivator widgetActivator, IRuleManager
             ruleManager, CMSDbContext dbContext,
-            ILocalize localize)
+            ILocalize localize, 
+            IAuditTrailService auditTrailService)
             : base(applicationContext, dbContext)
         {
             _widgetBasePartService = widgetBasePartService;
             _widgetActivator = widgetActivator;
             _ruleManager = ruleManager;
             _localize = localize;
+            _auditTrailService = auditTrailService;
         }
         private Rule Init(Rule item)
         {
@@ -98,6 +102,7 @@ namespace ZKEACMS.Rule
             {
                 return new Error("Title", _localize.Get("There is an error value in the condition, save failed!"));
             }
+            _auditTrailService.AuditUpdate(Get(item.RuleID), item);
             return base.Update(item);
         }
         public override Rule Get(params object[] primaryKey)
