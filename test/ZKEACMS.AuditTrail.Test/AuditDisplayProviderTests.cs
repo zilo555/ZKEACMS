@@ -1,11 +1,13 @@
+/* http://www.zkea.net/ 
+ * Copyright (c) ZKEASOFT. All rights reserved. 
+ * http://www.zkea.net/licenses */
+
 using Easy.AuditTrail;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using ZKEACMS.AuditTrail.Service;
-using ZKEACMS.Common.Service;
 
 namespace ZKEACMS.AuditTrail.Test
 {

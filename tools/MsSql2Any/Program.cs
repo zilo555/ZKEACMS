@@ -1,4 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿/* http://www.zkea.net/ 
+ * Copyright (c) ZKEASOFT. All rights reserved. 
+ * http://www.zkea.net/licenses */
+
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using MsSql2Any.Config;
 using MsSql2Any.DataAccess;
@@ -9,7 +13,6 @@ await MainAsync(args);
 
 static async Task MainAsync(string[] args)
 {
-    // 设置配置
     var builder = new ConfigurationBuilder()
         .SetBasePath(Directory.GetCurrentDirectory())
         .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
@@ -18,16 +21,14 @@ static async Task MainAsync(string[] args)
 
     var configuration = builder.Build();
 
-    // 绑定配置到对象
     var appConfig = configuration.Get<AppConfig>() ?? new AppConfig();
-    // 验证必需的配置项
+
     if (string.IsNullOrEmpty(appConfig.SourceConnectionString))
     {
         Console.WriteLine("错误: 必须提供 SourceConnectionString 配置项");
         return;
     }
 
-    // 设置依赖注入容器
     var services = new ServiceCollection();
     services.AddSingleton(appConfig);
     services.AddSingleton<ISourceDbProvider, SqlServerProvider>();
@@ -49,7 +50,7 @@ static async Task MainAsync(string[] args)
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"导出过程中发生错误: {ex.Message}");
+        Console.WriteLine(ex.Message);
         Console.WriteLine(ex.StackTrace);
     }
 }

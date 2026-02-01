@@ -1,9 +1,10 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+/* http://www.zkea.net/ 
+ * Copyright (c) ZKEASOFT. All rights reserved. 
+ * http://www.zkea.net/licenses */
+
 using MsSql2Any.Config;
 using MsSql2Any.DataAccess;
 using MsSql2Any.ScriptGenerators;
-using MsSql2Any.Services;
-using Moq;
 
 namespace MsSql2Any.Test
 {

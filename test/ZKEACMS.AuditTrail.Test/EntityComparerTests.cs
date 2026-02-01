@@ -3,13 +3,10 @@
  * http://www.zkea.net/licenses */
 
 using Easy.AuditTrail.Attributes;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using ZKEACMS.AuditTrail.Service;
-using ZKEACMS.Common.Models;
 
 namespace ZKEACMS.AuditTrail.Test
 {
