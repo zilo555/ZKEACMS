@@ -19,6 +19,7 @@
                     <input type="button" class="btn btn-warning append-html" value="@L("Append '.html'")" />
                     <input type="submit" class="btn btn-danger delete" value="@L("Delete")" data-value="@ActionType.Delete" />
                 }
+                @Html.ChangeHistoryBtn(Model)
                 <a class="btn btn-default" href="@Url.Action("Index")">@L("Cancel")</a>
             </div>
         }

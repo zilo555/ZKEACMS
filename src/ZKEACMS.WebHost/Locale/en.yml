@@ -402,6 +402,7 @@ NavigationEntity@IsMobile: Is Mobile
 NavigationEntity@LastUpdateByName: Last Update By Name
 NavigationEntity@Title: Title
 NavigationEntity@Url: Url
+NavigationEntity@ParentId: Parent
 NavigationWidget@AlignClass: Align Class
 NavigationWidget@AssemblyName: Assembly Name
 NavigationWidget@CreatebyName: Createby Name

@@ -701,6 +701,7 @@ NavigationEntity@DisplayOrder: 排序
 NavigationEntity@Html: HTML内容
 NavigationEntity@IsMobile: 手机一级导航
 NavigationEntity@Title: 标题
+NavigationEntity@ParentId: 父级导航
 NavigationWidget@AlignClass: 对齐
 NavigationWidget@CustomerClass: 契合度
 NavigationWidget@CustomStyle: 契合度

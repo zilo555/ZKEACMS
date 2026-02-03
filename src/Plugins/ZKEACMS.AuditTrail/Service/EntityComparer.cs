@@ -112,7 +112,7 @@ namespace ZKEACMS.AuditTrail.Service
         /// <summary>
         /// Determine if type is a simple type (value type or string)
         /// </summary>
-        private static bool IsSimpleType(Type type)
+        private static bool IsValueType(Type type)
         {
             if (type == null) return true;
             return type.IsValueType || type == typeof(string);
@@ -163,7 +163,7 @@ namespace ZKEACMS.AuditTrail.Service
             var elementType = GetCollectionElementType(oldObj.GetType());
 
             // Check if elementType is a simple type (value type or string)
-            if (IsSimpleType(elementType))
+            if (IsValueType(elementType))
             {
                 CompareSimpleElements(fieldName, changes, oldItems, newItems, valueProviders, currentPropertyInfo);
                 return;
@@ -312,7 +312,7 @@ namespace ZKEACMS.AuditTrail.Service
                 var keyStr = key?.ToString() ?? "null";
                 var fieldPath = $"{fieldName}[{keyStr}]";
 
-                if (IsSimpleType(valueType))
+                if (IsValueType(valueType))
                 {// If value is a simple type (value type or string), handle directly
                     if (AreEqual(oldValue, newValue)) continue;
 
@@ -395,7 +395,7 @@ namespace ZKEACMS.AuditTrail.Service
                 if (value == null) return null;
 
                 var valueType = value.GetType();
-                if (IsSimpleType(valueType))
+                if (IsValueType(valueType))
                 {
                     return value.ToString();
                 }
@@ -429,7 +429,7 @@ namespace ZKEACMS.AuditTrail.Service
                 if (value == null) return null;
 
                 var valueType = value.GetType();
-                if (IsSimpleType(valueType))
+                if (IsValueType(valueType))
                 {
                     return value.ToString();
                 }
@@ -542,10 +542,6 @@ namespace ZKEACMS.AuditTrail.Service
         {
             if (value == null) return null;
 
-            if (value is string str) return str;
-            if (value is DateTime dt) return dt.ToString("yyyy-MM-dd HH:mm:ss");
-
-            // If property info and value providers are available, try to get display value
             if (propertyInfo != null && valueProviders != null)
             {
                 foreach (var provider in valueProviders.Where(m => m is not IAuditDisplayProvider))
@@ -559,7 +555,11 @@ namespace ZKEACMS.AuditTrail.Service
                 }
 
             }
-            if (IsSimpleType(value.GetType()))
+
+            if (value is string str) return str;
+            if (value is DateTime dt) return dt.ToString("yyyy-MM-dd HH:mm:ss");
+
+            if (IsValueType(value.GetType()))
             {
                 return value.ToString();
             }

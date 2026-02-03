@@ -702,6 +702,7 @@ NavigationEntity@DisplayOrder: 排序
 NavigationEntity@Html: HTML內容
 NavigationEntity@IsMobile: 手機一級導航
 NavigationEntity@Title: 標題
+NavigationEntity@ParentId: 父級導航
 NavigationWidget@AlignClass: 對齊
 NavigationWidget@CustomerClass: 契合度
 NavigationWidget@CustomStyle: 契合度

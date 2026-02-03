@@ -15,6 +15,7 @@ namespace ZKEACMS
         {
             services.AddAuditValueProvider<AuditRecordStatusValueProvider>();
             services.AddAuditValueProvider<AuditLocalizeDisplayProvider>();
+            services.AddAuditValueProvider<AuditNavigationParentValueProvider>();
         }
         public static void AddAuditValueProvider<TAuditValueProvider>(this IServiceCollection services)
             where TAuditValueProvider : class, IAuditValueProvider
