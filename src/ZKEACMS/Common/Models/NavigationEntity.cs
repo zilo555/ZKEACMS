@@ -2,6 +2,7 @@
  * Copyright (c) ZKEASOFT. All rights reserved. 
  * http://www.zkea.net/licenses */
 
+using Easy.AuditTrail.Attributes;
 using Easy.MetaData;
 using Easy.Models;
 using Easy.RepositoryPattern;
@@ -22,7 +23,8 @@ namespace ZKEACMS.Common.Models
         public string ParentId { get; set; }
         public string Url { get; set; }
         public string Html { get; set; }
-        [NotMapped]
+
+        [NotMapped, AuditIgnore]
         public bool IsCurrent { get; set; }
     }
     class NavigationEntityMeta : ViewMetaData<NavigationEntity>

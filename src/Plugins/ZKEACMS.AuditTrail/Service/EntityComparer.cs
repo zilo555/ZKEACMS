@@ -341,18 +341,17 @@ namespace ZKEACMS.AuditTrail.Service
             }
 
             // Check if any provider implements IAuditDisplayProvider and can provide a display name
-            var displayProvider = valueProviders.OfType<IAuditDisplayProvider>()
-                .FirstOrDefault(p => p.CanHandle(property, property.DeclaringType, AuditOperationType.GetName));
+            var displayProviders = valueProviders.OfType<IAuditDisplayProvider>();
 
-            if (displayProvider != null)
+            foreach (var displayProvider in displayProviders)
             {
-                var displayName = displayProvider.GetDisplayName(property, property.DeclaringType);
-                if (!string.IsNullOrEmpty(displayName))
-                {
-                    return displayName;
-                }
-            }
+                if (!displayProvider.CanHandle(property, property.DeclaringType)) continue;
 
+                var displayName = displayProvider.GetDisplayName(property, property.DeclaringType);
+                if (string.IsNullOrEmpty(displayName)) continue;
+
+                return displayName;
+            }
             return property.Name;
         }
 
@@ -549,11 +548,16 @@ namespace ZKEACMS.AuditTrail.Service
             // If property info and value providers are available, try to get display value
             if (propertyInfo != null && valueProviders != null)
             {
-                var provider = valueProviders.FirstOrDefault(p => p.CanHandle(propertyInfo, propertyInfo.DeclaringType, AuditOperationType.GetValue));
-                if (provider != null)
+                foreach (var provider in valueProviders.Where(m => m is not IAuditDisplayProvider))
                 {
-                    return provider.GetDisplayValue(propertyInfo, value);
+                    if (!provider.CanHandle(propertyInfo, propertyInfo.DeclaringType)) continue;
+
+                    var result = provider.GetDisplayValue(propertyInfo, value);
+                    if (result == null) continue;
+
+                    return result;
                 }
+
             }
             if (IsSimpleType(value.GetType()))
             {

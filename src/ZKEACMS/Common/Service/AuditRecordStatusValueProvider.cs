@@ -26,10 +26,8 @@ namespace ZKEACMS.Common.Service
             _cultureOption = cultureOption.Value;
         }
 
-        public bool CanHandle(PropertyInfo property, Type entityType, AuditOperationType operationType)
+        public bool CanHandle(PropertyInfo property, Type entityType)
         {
-            if (operationType == AuditOperationType.GetName) return false;
-
             return property.GetCustomAttribute<AuditRecordStatusAttribute>() != null;
         }
 

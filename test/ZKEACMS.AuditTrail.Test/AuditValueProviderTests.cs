@@ -36,10 +36,9 @@ namespace ZKEACMS.AuditTrail.Test
             return rawValue?.ToString();
         }
 
-        public bool CanHandle(PropertyInfo property, System.Type entityType, AuditOperationType operationType)
+        public bool CanHandle(PropertyInfo property, System.Type entityType)
         {
-            return operationType == AuditOperationType.GetValue && 
-                   entityType == typeof(TestEntityWithStatus) && 
+            return entityType == typeof(TestEntityWithStatus) && 
                    property.Name == nameof(TestEntityWithStatus.Status);
         }
     }

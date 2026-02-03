@@ -22,9 +22,9 @@ namespace ZKEACMS.Common.Service
             _culture = culture.Value;
         }
 
-        public bool CanHandle(PropertyInfo property, Type entityType, AuditOperationType operationType)
+        public bool CanHandle(PropertyInfo property, Type entityType)
         {
-            return operationType == AuditOperationType.GetName;
+            return true;
         }
 
         public string GetDisplayName(PropertyInfo property, Type entityType)
