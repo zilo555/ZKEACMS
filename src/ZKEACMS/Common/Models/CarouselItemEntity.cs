@@ -10,19 +10,21 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using ZKEACMS.Extend;
 using Easy.RepositoryPattern;
+using Easy.AuditTrail.Attributes;
 
 namespace ZKEACMS.Common.Models
 {
     [DataTable("CarouselItem")]
     public class CarouselItemEntity : EditorEntity
     {
-        [Key]
+        [Key, AuditKey]
         public int ID { get; set; }
 
         public int CarouselID { get; set; }
         public string CarouselWidgetID { get; set; }
 
         public string TargetLink { get; set; }
+
         public string ImageUrl { get; set; }
 
     }
