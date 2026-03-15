@@ -4,8 +4,8 @@
 @{
     var model = ViewData.ModelMetadata;
     ViewData.TemplateInfo.HtmlFieldPrefix = ViewData.TemplateInfo.HtmlFieldPrefix.Replace(".[", "[");
-
-    var keyValue = AuditKeyAttribute.GetCombinedKeyValue(Model);
+    var ignores = model.Properties.Where(m => m.ShowForEdit).Select(m => m.PropertyName).ToArray();
+    var keyValue = AuditKeyAttribute.GetCombinedKeyValue(Model, ignores);
 }
 
 <div class="row item" data-name="@ViewData.TemplateInfo.HtmlFieldPrefix">
@@ -14,7 +14,7 @@
         <code style="position: absolute;left: 5px;top: 5px;">
             #@keyValue
         </code>
-    }    
+    }
     @foreach (var item in model.Properties.Where(m => m.ShowForEdit).OrderBy(m => m.Order))
     {
         <div class="form-group">

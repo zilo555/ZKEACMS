@@ -12,6 +12,7 @@ using ZKEACMS.ExtendField;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using Easy.RepositoryPattern;
+using Easy.AuditTrail.Attributes;
 
 namespace ZKEACMS.Page
 {
@@ -50,8 +51,14 @@ namespace ZKEACMS.Page
         public string Content { get; set; }
         public string MetaKeyWorlds { get; set; }
         public string MetaDescription { get; set; }
+        
+        [AuditIgnore]
         public string Script { get; set; }
+
+        [AuditIgnore]
         public string Style { get; set; }
+
+        [AuditIgnore]
         public bool IsHomePage { get; set; }
 
         public DateTime? PublishDate { get; set; }
@@ -75,7 +82,7 @@ namespace ZKEACMS.Page
             ViewConfig(m => m.Style).AsHidden();
             ViewConfig(m => m.Scripts).AsListEditor().Sortable();
             ViewConfig(m => m.Styles).AsListEditor().Sortable();
-            
+
             ViewConfig(m => m.ParentId).AsHidden();
             ViewConfig(m => m.ID).AsHidden();
             ViewConfig(m => m.DisplayOrder).AsHidden();

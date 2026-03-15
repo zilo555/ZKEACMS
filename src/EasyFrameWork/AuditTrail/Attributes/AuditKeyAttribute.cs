@@ -57,9 +57,12 @@ namespace Easy.AuditTrail.Attributes
             return string.Join("|", keyValues); // Using pipe as separator for composite keys
         }
 
-        public static string GetCombinedKeyValue(object item)
+        public static string GetCombinedKeyValue(object item, params string[] ignoreProperties)
         {
-            var keyProperties = GetKeyProperties(item.GetType());
+            var keyProperties = GetKeyProperties(item.GetType())
+                .Where(m=> !ignoreProperties.Contains(m.Name))
+                .ToArray();
+
             return GetCombinedKeyValue(keyProperties, item);
         }
 

@@ -3,6 +3,7 @@
  * http://www.zkea.net/licenses */
 
 using Easy;
+using Easy.AuditTrail;
 using Easy.Extend;
 using Easy.RepositoryPattern;
 using Easy.Serializer;
@@ -28,6 +29,7 @@ namespace ZKEACMS.Page
         private readonly ILayoutHtmlService _layoutHtmlService;
         private readonly IEventManager _eventManager;
         private readonly ILocalize _localize;
+        private readonly IAuditTrailService _auditTrailService;
         private Dictionary<string, IEnumerable<PageEntity>> _cachedPage;
         public PageService(IWidgetBasePartService widgetService,
             IApplicationContext applicationContext,
@@ -36,7 +38,8 @@ namespace ZKEACMS.Page
             ILayoutHtmlService layoutHtmlService,
             ILocalize localize,
             CMSDbContext dbContext,
-            IEventManager eventManager)
+            IEventManager eventManager,
+            IAuditTrailService auditTrailService)
             : base(applicationContext, dbContext)
         {
             _widgetService = widgetService;
@@ -46,6 +49,7 @@ namespace ZKEACMS.Page
             _eventManager = eventManager;
             _localize = localize;
             _cachedPage = new Dictionary<string, IEnumerable<PageEntity>>(StringComparer.OrdinalIgnoreCase);
+            _auditTrailService = auditTrailService;
         }
 
         private string FormatPath(string path)
@@ -102,12 +106,19 @@ namespace ZKEACMS.Page
         }
         private void SerializeAssets(PageEntity page)
         {
-            if (page != null)
+            if (page == null) return;
+
+            if (page.Styles != null)
             {
-                page.Style = JsonConverter.Serialize(page.Styles.RemoveDeletedItems().Select(m => m.Url));
-                page.Script = JsonConverter.Serialize(page.Scripts.RemoveDeletedItems().Select(m => m.Url));
+                page.Styles = page.Styles.RemoveDeletedItems().ToList();
+                page.Style = JsonConverter.Serialize(page.Styles.Select(m => m.Url));
             }
-        }
+            if (page.Scripts != null)
+            {
+                page.Scripts = page.Scripts.RemoveDeletedItems().ToList();
+                page.Script = JsonConverter.Serialize(page.Scripts.Select(m => m.Url));
+            }
+        }        
 
 
         private void PublishAsNew(PageEntity item)
@@ -201,10 +212,12 @@ namespace ZKEACMS.Page
             _eventManager.Trigger(Events.OnPageUpdating, item);
             item.IsPublish = false;
             SerializeAssets(item);
+            var oldPage = Get(item.ID);
             var result = base.Update(item);
             if (!result.HasError)
             {
                 _eventManager.Trigger(Events.OnPageUpdated, item);
+                _auditTrailService.AuditUpdate(oldPage, item);
             }
             return result;
         }
