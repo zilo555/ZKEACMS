@@ -26,6 +26,8 @@ using Microsoft.AspNetCore.Hosting;
 using Easy.Mvc.Extend;
 using Microsoft.Extensions.Options;
 using ZKEACMS.Zone;
+using Easy.AuditTrail;
+using ZKEACMS.Layout;
 
 namespace ZKEACMS.Controllers
 {
@@ -40,6 +42,7 @@ namespace ZKEACMS.Controllers
         private readonly IPageService _pageService;
         private readonly ILocalize _localize;
         private readonly IZoneService _zoneService;
+        private readonly IAuditTrailService _auditTrailService;
 
         public WidgetController(IWidgetBasePartService widgetService,
             IWidgetTemplateService widgetTemplateService,
@@ -48,7 +51,8 @@ namespace ZKEACMS.Controllers
             IWidgetActivator widgetActivator,
             IPageService pageService,
             ILocalize localize,
-            IZoneService zoneService)
+            IZoneService zoneService,
+            IAuditTrailService auditTrailService)
         {
             _widgetService = widgetService;
             _widgetTemplateService = widgetTemplateService;
@@ -58,6 +62,7 @@ namespace ZKEACMS.Controllers
             _pageService = pageService;
             _localize = localize;
             _zoneService = zoneService;
+            _auditTrailService = auditTrailService;
         }
         private void SetDataSource(WidgetBase widget)
         {
@@ -101,9 +106,32 @@ namespace ZKEACMS.Controllers
             widget.RuleID = null;
             SetDefaultValuesToWidget(context, widget);
             widgetPartDriver.AddWidget(widget);
+            AuditWidgetCreate(widget);
             return RedirectToAction("Edit", new { ID = widget.ID, ReturnUrl = context.ReturnUrl });
         }
 
+        private void AuditWidgetCreate(WidgetBase widget)
+        {
+            if (widget.PageId.IsNotNullAndWhiteSpace())
+            {
+                _auditTrailService.AuditCreate<PageEntity>(widget.PageId, _localize.Get("Widget"), widget.WidgetName);
+            }
+            else if (widget.LayoutId.IsNotNullAndWhiteSpace())
+            {
+                _auditTrailService.AuditCreate<LayoutEntity>(widget.LayoutId, _localize.Get("Widget"), widget.WidgetName);
+            }
+        }
+        private void AuditWidgetDelete(WidgetBase widget)
+        {
+            if (widget.PageId.IsNotNullAndWhiteSpace())
+            {
+                _auditTrailService.AuditDelete<PageEntity>(widget.PageId, _localize.Get("Widget"), widget.WidgetName);
+            }
+            else if (widget.LayoutId.IsNotNullAndWhiteSpace())
+            {
+                _auditTrailService.AuditDelete<LayoutEntity>(widget.LayoutId, _localize.Get("Widget"), widget.WidgetName);
+            }
+        }
         private ActionResult CreateWidgetFromTemplate(QueryContext context)
         {
             var template = _widgetTemplateService.Get(context.WidgetTemplateID);
@@ -158,6 +186,7 @@ namespace ZKEACMS.Controllers
                 return View(widget);
             }
             _widgetActivator.Create(widget).AddWidget(widget);
+            AuditWidgetCreate(widget);
             if (widget.ActionType.HasFlag(ActionType.Continue))
             {
                 return RedirectToAction("Edit", new { widget.ID, ReturnUrl });
@@ -227,6 +256,7 @@ namespace ZKEACMS.Controllers
             if (widget.Status == (int)WidgetStatus.Deleted || permanent == true)
             {
                 _widgetActivator.Create(widget).DeleteWidget(ID);
+                AuditWidgetDelete(widget);
                 return Json(new { ActionType = (int)ActionType.Delete });
             }
             else
@@ -258,6 +288,7 @@ namespace ZKEACMS.Controllers
                 var layout = HttpContext.RequestServices.GetService<Layout.ILayoutService>().GetByPage(page);
                 layout.Page = page;
                 widgetPart = _widgetService.ApplyTemplate(layout, widget, ControllerContext);
+                AuditWidgetCreate(widgetPart.Widget);
             }
             if (widgetPart == null)
             {

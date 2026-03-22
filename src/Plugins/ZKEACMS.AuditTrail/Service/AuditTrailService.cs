@@ -2,6 +2,7 @@
  * Copyright (c) ZKEASOFT. All rights reserved. 
  * http://www.zkea.net/licenses */
 
+using AngleSharp.Dom;
 using Easy;
 using Easy.AuditTrail;
 using Easy.AuditTrail.Attributes;
@@ -39,6 +40,29 @@ namespace ZKEACMS.AuditTrail.Service
 
         #region Record data changes
 
+        public void AuditCreate<T>(string id, string field, string newValue, string remark = null) where T : class
+        {
+            if (id == null) return;
+
+            var entityType = typeof(T);
+            if (ShouldIgnoreAudit(entityType)) return;
+
+            var record = CreateRecord(entityType, id, remark);
+
+            var changes = new List<FieldChange>
+            {
+                new FieldChange
+                {
+                    Field = field,
+                    ChangeType= (int)AuditChangeType.Added,
+                    NewValue = newValue
+                }
+            };
+
+            record.Changes = JsonConverter.Serialize(changes);
+
+            Add(record);
+        }
         public void AuditCreate<TEntity>(TEntity entity, string remark = null) where TEntity : class
         {
             if (entity == null) return;
@@ -52,6 +76,7 @@ namespace ZKEACMS.AuditTrail.Service
             {
                 new FieldChange
                 {
+                    ChangeType = (int)AuditChangeType.Added,
                     NewValue = EntityComparer.GetKeyAndTitle<TEntity>(entity)
                 }
             };
@@ -93,6 +118,7 @@ namespace ZKEACMS.AuditTrail.Service
             {
                 new FieldChange
                 {
+                    ChangeType = (int)AuditChangeType.Deleted,
                     OldValue = EntityComparer.GetKeyAndTitle<TEntity>(entity)
                 }
             };
@@ -100,7 +126,29 @@ namespace ZKEACMS.AuditTrail.Service
             record.Changes = JsonConverter.Serialize(changes);
             Add(record);
         }
+        public void AuditDelete<T>(string id, string field, string oldValue, string remark = null) where T : class
+        {
+            if (id == null) return;
 
+            var entityType = typeof(T);
+            if (ShouldIgnoreAudit(entityType)) return;
+
+            var record = CreateRecord(entityType, id, remark);
+
+            var changes = new List<FieldChange>
+            {
+                new FieldChange
+                {
+                    Field = field,
+                    ChangeType = (int)AuditChangeType.Deleted,
+                    OldValue = oldValue
+                }
+            };
+
+            record.Changes = JsonConverter.Serialize(changes);
+
+            Add(record);
+        }
         #endregion
 
         #region Query audit records
@@ -146,6 +194,21 @@ namespace ZKEACMS.AuditTrail.Service
                 Description = remark
             };
         }
+        private AuditTrailRecord CreateRecord(Type entityType, string entityId, string remark)
+        {
+            var currentUser = _applicationContext.CurrentUser;
+            var httpContext = _httpContextAccessor.HttpContext;
+
+
+            return new AuditTrailRecord
+            {
+                EntityType = WebEncoders.Base64UrlEncode(entityType.FullName.ToByte()),
+                EntityID = entityId,
+                IPAddress = httpContext?.Connection?.RemoteIpAddress?.ToString(),
+                Description = remark
+            };
+        }
+
         #endregion
     }
 }
