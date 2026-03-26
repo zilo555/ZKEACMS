@@ -277,7 +277,7 @@ namespace ZKEACMS.Widget
             get; set;
         }
 
-        [NotMapped, JsonIgnore]
+        [NotMapped, JsonIgnore, AuditIgnore]
         public override string ExtendData
         {
             get; set;

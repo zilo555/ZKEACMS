@@ -15,12 +15,14 @@ namespace ZKEACMS
         {
             services.AddAuditValueProvider<AuditRecordStatusValueProvider>();
             services.AddAuditValueProvider<AuditLocalizeDisplayProvider>();
-            services.AddAuditValueProvider<AuditNavigationParentValueProvider>();
+            services.AddAuditValueProvider<AuditNavigationValueProvider>();
             services.AddAuditValueProvider<AuditWidgetStatusValueProvider>();
 
             services.AddScoped<AuditWidgetZoneValueProvider>();
             services.AddScoped<IAuditWidgetZoneValueProvider, AuditWidgetZoneValueProvider>(provider => provider.GetService<AuditWidgetZoneValueProvider>());
             services.AddScoped<IAuditValueProvider, AuditWidgetZoneValueProvider>(provider => provider.GetService<AuditWidgetZoneValueProvider>());
+
+            services.AddAuditValueProvider<AuditCarouselValueProvider>();
         }
         public static void AddAuditValueProvider<TAuditValueProvider>(this IServiceCollection services)
             where TAuditValueProvider : class, IAuditValueProvider

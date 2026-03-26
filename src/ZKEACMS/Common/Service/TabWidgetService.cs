@@ -25,11 +25,21 @@ namespace ZKEACMS.Common.Service
         public override ErrorOr<TabWidget> Add(TabWidget item)
         {
             item.TabItems = item.TabItems.RemoveDeletedItems().ToList();
+            int id = 0;
+            item.TabItems.ForEach(t => t.ID = ++id);
             return base.Add(item);
         }
         public override ErrorOr<TabWidget> Update(TabWidget item)
         {
             item.TabItems = item.TabItems.RemoveDeletedItems().ToList();
+            int id = item.TabItems.Max(m => m.ID) ?? 0;
+            item.TabItems.ForEach(t =>
+            {
+                if (t.ID == null)
+                {
+                    t.ID = ++id;
+                }
+            });
             return base.Update(item);
         }
 

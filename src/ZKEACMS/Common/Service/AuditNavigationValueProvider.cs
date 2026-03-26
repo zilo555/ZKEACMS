@@ -17,18 +17,19 @@ using ZKEACMS.Common.Models;
 
 namespace ZKEACMS.Common.Service
 {
-    public class AuditNavigationParentValueProvider : IAuditValueProvider
+    public class AuditNavigationValueProvider : IAuditValueProvider
     {
         private readonly INavigationService _navigationService;
 
-        public AuditNavigationParentValueProvider(INavigationService navigationService)
+        public AuditNavigationValueProvider(INavigationService navigationService)
         {
             _navigationService = navigationService;
         }
         public int Priority => 10;
         public bool CanHandle(PropertyInfo property, Type entityType)
         {
-            return entityType == typeof(NavigationEntity) && property.Name == nameof(NavigationEntity.ParentId);
+            return (entityType == typeof(NavigationEntity) && property.Name == nameof(NavigationEntity.ParentId)) ||
+                (entityType == typeof(NavigationWidget) && property.Name == nameof(NavigationWidget.RootID));
         }
 
         public string GetDisplayValue(PropertyInfo property, object rawValue)
