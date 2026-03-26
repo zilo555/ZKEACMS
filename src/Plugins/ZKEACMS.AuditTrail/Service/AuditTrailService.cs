@@ -93,7 +93,7 @@ namespace ZKEACMS.AuditTrail.Service
             var entityType = typeof(TEntity);
             if (ShouldIgnoreAudit(entityType)) return;
 
-            var changes = EntityComparer.Compare(oldEntity, newEntity, _applicationContext.ServiceProvider.GetServices<IAuditValueProvider>());
+            var changes = EntityComparer.Compare(oldEntity, newEntity, GetAuditValueProviders());
             if (!changes.Any()) return; // Don't record if no changes
 
             var record = CreateRecord(entityType, newEntity, remark);
@@ -105,6 +105,30 @@ namespace ZKEACMS.AuditTrail.Service
             Add(record);
         }
 
+        private List<IAuditValueProvider> GetAuditValueProviders()
+        {
+            return _applicationContext.ServiceProvider.GetServices<IAuditValueProvider>()
+                .OrderByDescending(m => m.Priority)
+                .ToList();
+        }
+
+        public void AuditUpdate(Type entityType, object oldEntity, object newEntity, string remark = null)
+        {
+            if (oldEntity == null || newEntity == null) return;
+
+            if (ShouldIgnoreAudit(entityType)) return;
+
+            var changes = EntityComparer.Compare(oldEntity, newEntity, GetAuditValueProviders());
+            if (!changes.Any()) return; // Don't record if no changes
+
+            var record = CreateRecord(entityType, newEntity, remark);
+            for (int i = 0; i < changes.Count; i++)
+            {
+                changes[i].Sequence = i;
+            }
+            record.Changes = JsonConverter.Serialize(changes);
+            Add(record);
+        }
         public void AuditDelete<TEntity>(TEntity entity, string remark = null) where TEntity : class
         {
             if (entity == null) return;

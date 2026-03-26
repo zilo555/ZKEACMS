@@ -13,17 +13,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using ZKEACMS.Widget;
 
 namespace ZKEACMS.Common.Service
 {
-    public class AuditRecordStatusValueProvider : IAuditValueProvider
+    public class AuditWidgetStatusValueProvider : IAuditValueProvider
     {
         private readonly IDataDictionaryService _dataDictionaryService;
         private readonly ILocalize _localize;
         private readonly CultureOption _cultureOption;
         private Dictionary<string, string> _recordStatusDic;
 
-        public AuditRecordStatusValueProvider(IDataDictionaryService dataDictionaryService, ILocalize localize, IOptions<CultureOption> cultureOption)
+        public AuditWidgetStatusValueProvider(IDataDictionaryService dataDictionaryService, ILocalize localize, IOptions<CultureOption> cultureOption)
         {
             _dataDictionaryService = dataDictionaryService;
             _localize = localize;
@@ -32,14 +33,14 @@ namespace ZKEACMS.Common.Service
         public int Priority => 10;
         public bool CanHandle(PropertyInfo property, Type entityType)
         {
-            return property.GetCustomAttribute<AuditRecordStatusAttribute>(false) != null;
+            return property.Name.Equals(nameof(WidgetBase.Status)) && typeof(WidgetBase).IsAssignableFrom(entityType);
         }
 
         public string GetDisplayValue(PropertyInfo property, object rawValue)
         {
             if (_recordStatusDic == null)
             {
-                _recordStatusDic = _dataDictionaryService.Get(m => m.DicName == DicKeys.RecordStatus)
+                _recordStatusDic = _dataDictionaryService.Get(m => m.DicName == DictionaryKeys.WidgetStatus)
                     .ToDictionary(m => m.DicValue, m => _localize.Get(m.Title, _cultureOption.Code));
             }
 

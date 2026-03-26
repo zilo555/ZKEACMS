@@ -18,6 +18,8 @@ namespace ZKEACMS.Article.Service
             _articleTypeService = articleTypeService;
         }
 
+        public int Priority => 10;
+
         public bool CanHandle(PropertyInfo property, Type entityType)
         {
             return property.Name == nameof(ArticleEntity.ArticleTypeID) && entityType == typeof(ArticleEntity);

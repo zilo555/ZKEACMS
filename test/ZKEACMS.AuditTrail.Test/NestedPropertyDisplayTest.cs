@@ -47,6 +47,7 @@ namespace ZKEACMS.AuditTrail.Test
 
     public class NestedEntityDisplayProvider : IAuditDisplayProvider
     {
+        public int Priority => 10;
         public string GetDisplayValue(PropertyInfo property, object rawValue)
         {
             // Just return raw value for this test
@@ -294,6 +295,7 @@ namespace ZKEACMS.AuditTrail.Test
 
         public class ComplexDictionaryDisplayProvider : IAuditDisplayProvider
         {
+            public int Priority => 10;
             public string GetDisplayValue(PropertyInfo property, object rawValue)
             {
                 // Just return raw value for this test

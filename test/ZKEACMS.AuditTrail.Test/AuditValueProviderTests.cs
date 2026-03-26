@@ -19,6 +19,7 @@ namespace ZKEACMS.AuditTrail.Test
 
     public class StatusValueProvider : IAuditValueProvider
     {
+        public int Priority => 10;
         public string GetDisplayValue(PropertyInfo property, object rawValue)
         {
             if (property.Name == nameof(TestEntityWithStatus.Status))

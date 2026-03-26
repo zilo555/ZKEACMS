@@ -20,6 +20,7 @@ namespace ZKEACMS.AuditTrail.Test
 
     public class TitleDisplayProvider : IAuditDisplayProvider
     {
+        public int Priority => 10;
         public string GetDisplayValue(PropertyInfo property, object rawValue)
         {
             throw new NotImplementedException();

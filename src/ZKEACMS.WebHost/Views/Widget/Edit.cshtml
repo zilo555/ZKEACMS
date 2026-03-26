@@ -40,6 +40,7 @@
                     </a>
                 }
                 <input id="copy-widget" type="button" class="btn btn-warning" data-id="@Model.ID" value="@L("Copy")" />
+                @Html.ChangeHistoryBtn(Model)
                 <input type="button" class="btn btn-default cancel" value="@L("Cancel")" />
             </div>
         }

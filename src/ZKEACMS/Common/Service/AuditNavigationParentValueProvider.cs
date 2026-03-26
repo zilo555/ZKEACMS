@@ -25,7 +25,7 @@ namespace ZKEACMS.Common.Service
         {
             _navigationService = navigationService;
         }
-
+        public int Priority => 10;
         public bool CanHandle(PropertyInfo property, Type entityType)
         {
             return entityType == typeof(NavigationEntity) && property.Name == nameof(NavigationEntity.ParentId);

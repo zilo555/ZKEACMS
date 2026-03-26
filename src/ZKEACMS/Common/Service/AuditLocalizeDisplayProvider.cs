@@ -1,4 +1,8 @@
-﻿using Easy;
+﻿/* http://www.zkea.net/ 
+ * Copyright (c) ZKEASOFT. All rights reserved. 
+ * http://www.zkea.net/licenses */
+
+using Easy;
 using Easy.AuditTrail;
 using Easy.Options;
 using Microsoft.Extensions.Options;
@@ -22,6 +26,7 @@ namespace ZKEACMS.Common.Service
             _culture = culture.Value;
         }
 
+        public int Priority => 10;
         public bool CanHandle(PropertyInfo property, Type entityType)
         {
             return true;

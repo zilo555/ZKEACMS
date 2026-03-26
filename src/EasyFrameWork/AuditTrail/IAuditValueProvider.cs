@@ -12,6 +12,7 @@ namespace Easy.AuditTrail
     /// </summary>
     public interface IAuditValueProvider
     {
+        int Priority { get; }
         /// <summary>
         /// Gets the display value for a specific property
         /// </summary>
