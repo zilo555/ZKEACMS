@@ -32,12 +32,16 @@ namespace ZKEACMS.Common.Service
         public override ErrorOr<TabWidget> Update(TabWidget item)
         {
             item.TabItems = item.TabItems.RemoveDeletedItems().ToList();
-            int id = item.TabItems.Max(m => m.ID) ?? 0;
-            item.TabItems.ForEach(t =>
+            int id = 0;
+            if (item.TabItems.Any())
             {
-                if (t.ID == null)
+                id = item.TabItems.Max(o => o.ID) ?? 0;
+            }
+            item.TabItems.ForEach(m =>
+            {
+                if (m.ID == null)
                 {
-                    t.ID = ++id;
+                    m.ID = ++id;
                 }
             });
             return base.Update(item);
