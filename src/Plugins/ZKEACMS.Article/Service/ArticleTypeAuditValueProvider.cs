@@ -1,4 +1,8 @@
-﻿using Easy.AuditTrail;
+﻿/* http://www.zkea.net/ 
+ * Copyright (c) ZKEASOFT. All rights reserved. 
+ * http://www.zkea.net/licenses */
+
+using Easy.AuditTrail;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +26,10 @@ namespace ZKEACMS.Article.Service
 
         public bool CanHandle(PropertyInfo property, Type entityType)
         {
-            return property.Name == nameof(ArticleEntity.ArticleTypeID) && entityType == typeof(ArticleEntity);
+            return (property.Name == nameof(ArticleEntity.ArticleTypeID) && entityType == typeof(ArticleEntity)) ||
+                (property.Name == nameof(ArticleListWidget.ArticleTypeID) && entityType == typeof(ArticleListWidget)) ||
+                (property.Name == nameof(ArticleTypeWidget.ArticleTypeID) && entityType == typeof(ArticleTypeWidget)) ||
+                (property.Name == nameof(ArticleTopWidget.ArticleTypeID) && entityType == typeof(ArticleTopWidget));
         }
 
         public string GetDisplayValue(PropertyInfo property, object rawValue)

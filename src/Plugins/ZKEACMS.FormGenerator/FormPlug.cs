@@ -139,7 +139,9 @@ namespace ZKEACMS.FormGenerator
             {
                 option.DataSourceLinkTitle = "Form";
                 option.DataSourceLink = "~/admin/form";
-            });            
+            });
+
+            serviceCollection.AddAuditValueProvider<FormAduitValueProvider>();
         }
     }
 }

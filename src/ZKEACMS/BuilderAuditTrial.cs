@@ -23,6 +23,7 @@ namespace ZKEACMS
             services.AddScoped<IAuditValueProvider, AuditWidgetZoneValueProvider>(provider => provider.GetService<AuditWidgetZoneValueProvider>());
 
             services.AddAuditValueProvider<AuditCarouselValueProvider>();
+            services.AddAuditValueProvider<AuditWidgetRuleValueProvider>();
         }
         public static void AddAuditValueProvider<TAuditValueProvider>(this IServiceCollection services)
             where TAuditValueProvider : class, IAuditValueProvider

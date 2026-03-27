@@ -26,7 +26,9 @@ namespace ZKEACMS.Product.Service
 
         public bool CanHandle(PropertyInfo property, Type entityType)
         {
-            return entityType == typeof(ProductEntity) && property.Name == nameof(ProductEntity.ProductCategoryID);
+            return (entityType == typeof(ProductEntity) && property.Name == nameof(ProductEntity.ProductCategoryID))||
+                (entityType == typeof(ProductListWidget) && property.Name == nameof(ProductListWidget.ProductCategoryID)) ||
+                (entityType == typeof(ProductCategoryWidget) && property.Name == nameof(ProductCategoryWidget.ProductCategoryID));
         }
 
         public string GetDisplayValue(PropertyInfo property, object rawValue)

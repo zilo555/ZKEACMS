@@ -191,6 +191,7 @@ namespace ZKEACMS.Article
             serviceCollection.ConfigureMetaData<ArticleGalleryWidget, ArticleGalleryWidgetMetaData>();
 
             serviceCollection.AddAuditValueProvider<ArticleTypeAuditValueProvider>();
+            serviceCollection.AddAuditValueProvider<ArticleGalleryValueProvider>();
         }
     }
 }
