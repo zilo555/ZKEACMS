@@ -133,6 +133,20 @@ namespace ZKEACMS.Controllers
                 _auditTrailService.AuditDelete<LayoutEntity>(widget.LayoutId, _localize.Get("Widget"), widget.WidgetName);
             }
         }
+        private void AuditWidgetUpdate(WidgetBase oldWidget, WidgetBase newWidget)
+        {
+            var zoneValueProvider = HttpContext.RequestServices.GetService<IAuditWidgetZoneValueProvider>();
+            if (oldWidget.PageId.IsNotNullAndWhiteSpace())
+            {
+                zoneValueProvider.SetZones(_zoneService.GetByPage(_pageService.Get(oldWidget.PageId)));
+            }
+            else if (oldWidget.LayoutId.IsNotNullAndWhiteSpace())
+            {
+                zoneValueProvider.SetZones(_zoneService.GetByLayoutId(oldWidget.LayoutId));
+            }
+            _auditTrailService.AuditUpdate(oldWidget.GetType(), oldWidget, newWidget);
+        }
+
         private ActionResult CreateWidgetFromTemplate(QueryContext context)
         {
             var template = _widgetTemplateService.Get(context.WidgetTemplateID);
@@ -229,16 +243,7 @@ namespace ZKEACMS.Controllers
             var oldWidget = widgetDriver.GetWidget(oldWidgetBasePart);
             widgetDriver.UpdateWidget(widget);
             var newWidget = widgetDriver.GetWidget(widget);
-            var zoneValueProvider = HttpContext.RequestServices.GetService<IAuditWidgetZoneValueProvider>();
-            if (widget.PageId.IsNotNullAndWhiteSpace())
-            {
-                zoneValueProvider.SetZones(_zoneService.GetByPage(_pageService.Get(widget.PageId)));
-            }
-            else if (widget.LayoutId.IsNotNullAndWhiteSpace())
-            {
-                zoneValueProvider.SetZones(_zoneService.GetByLayoutId(widget.LayoutId));
-            }
-            _auditTrailService.AuditUpdate(oldWidget.GetType(), oldWidget, newWidget);
+            AuditWidgetUpdate(oldWidget, newWidget);
             if (!ReturnUrl.IsNullOrEmpty())
             {
                 return Redirect(ReturnUrl);
@@ -248,7 +253,7 @@ namespace ZKEACMS.Controllers
                 return RedirectToAction("Design", "Page", new { ID = widget.PageId });
             }
             return RedirectToAction("LayoutWidget", "Layout");
-        }
+        }        
 
         [HttpPost]
         public JsonResult SaveWidgetZone([FromBody] List<WidgetBase> widgets)
