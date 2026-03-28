@@ -21,7 +21,7 @@
                                 @if (Authorizer.Authorize(PermissionKeys.ManageLayout))
                                 {
                                     <div class="pull-right">
-                                        <a href="@Url.Action("Design", new {item.ID})" title="@L("Design")">
+                                        <a href="@Url.Action("Edit", new { item.ID })" title="@L("Edit")">
                                             <img class="icon" src="~/images/icons/edit.svg" />
                                         </a>
                                     </div>
@@ -33,7 +33,6 @@
             </div>
         </div>
         <div id="layoutZones" class="col-md-8">
-
         </div>
     </div>
 </div>
@@ -41,38 +40,38 @@
 @using (Script.AtFoot())
 {
     <script type="text/javascript">
-        $(function () {            
-            if (!location.hash) {
-                location.hash = '@ViewBag.LayoutId';
-            }
-            if (location.hash && location.hash != "#") {
-                $("li" + location.hash).trigger("click");
-            }
-            else if ($("#layouts>li.actived").size() === 0) {
-                $("#layouts>li").first().trigger("click");
-            }
+        $(function () {
+        if (!location.hash) {
+        location.hash = '@ViewBag.LayoutId';
+        }
+        if (location.hash && location.hash != "#") {
+        $("li" + location.hash).trigger("click");
+        }
+        else if ($("#layouts>li.actived").size() === 0) {
+        $("#layouts>li").first().trigger("click");
+        }
         });
 
         $(document).on("click", ".fullRowList .delete", function () {
-            var id = $(this).data("widgetid");
-            if (confirm("@L("Do you want to delete?")")) {
-                $.post("@Url.Action("DeleteWidget", "Widget")", { ID: id, permanent: true }, function (data) {
-                    if (data.actionType == @((int)ActionType.Delete)) {
-                        $("#widget_" + id).remove();
-                    } else if (data.actionType == @((int)ActionType.Update)) {
-                        $("#widget_" + id).addClass("disabled");
-                    }
-                }, "json");
-            }
+        var id = $(this).data("widgetid");
+        if (confirm("@L("Do you want to delete?")")) {
+        $.post("@Url.Action("DeleteWidget", "Widget")", { ID: id, permanent: true }, function (data) {
+        if (data.actionType == @((int)ActionType.Delete)) {
+        $("#widget_" + id).remove();
+        } else if (data.actionType == @((int)ActionType.Update)) {
+        $("#widget_" + id).addClass("disabled");
+        }
+        }, "json");
+        }
         }).on("click", "#layouts>li", function () {
-            $(this).siblings().removeClass("actived");
-            $(this).addClass("actived");
-            location.hash = $(this).data("id");
-            var layoutZones = $("#layoutZones");
-            layoutZones.empty();
-            $.post("@Url.Action("LayoutZones", "Layout", new { module="admin"})", { ID: $(this).data("id") }, function (html) {
-                layoutZones.html(html);
-            }, "html");
-            });
+        $(this).siblings().removeClass("actived");
+        $(this).addClass("actived");
+        location.hash = $(this).data("id");
+        var layoutZones = $("#layoutZones");
+        layoutZones.empty();
+        $.post("@Url.Action("LayoutZones", "Layout", new { module = "admin" })", { ID: $(this).data("id") }, function (html) {
+        layoutZones.html(html);
+        }, "html");
+        });
     </script>
 }

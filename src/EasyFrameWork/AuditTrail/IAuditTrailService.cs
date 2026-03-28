@@ -15,6 +15,7 @@ namespace Easy.AuditTrail
         void AuditCreate<TEntity>(TEntity entity, string remark = null) where TEntity : class;
         void AuditUpdate<TEntity>(TEntity oldEntity, TEntity newEntity, string remark = null) where TEntity : class;
         void AuditUpdate(Type entityType, object oldEntity, object newEntity, string remark = null);
+        void AuditUpdate<T>(string id, string field, object oldValue, object newValue, string remark = null) where T : class;
         void AuditDelete<TEntity>(TEntity entity, string remark = null) where TEntity : class;
         void AuditDelete<T>(string id, string field, string oldValue, string remark = null) where T : class;
         IList<AuditTrailRecord> GetByEntity(string entityType, string entityID, Pagination pagination);

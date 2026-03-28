@@ -129,6 +129,27 @@ namespace ZKEACMS.AuditTrail.Service
             record.Changes = JsonConverter.Serialize(changes);
             Add(record);
         }
+
+
+        public void AuditUpdate<T>(string id, string field, object oldValue, object newValue, string remark = null) where T : class
+        {
+            if (oldValue == null || newValue == null || oldValue == newValue) return;
+            var entityType = typeof(T);
+            if(ShouldIgnoreAudit(entityType)) return;
+
+            var changes = EntityComparer.Compare(oldValue, newValue, GetAuditValueProviders());
+            if (!changes.Any()) return; // Don't record if no changes
+
+            var record = CreateRecord(entityType, id, remark);
+            for (int i = 0; i < changes.Count; i++)
+            {
+                changes[i].Field = field;
+                changes[i].Sequence = i;
+            }
+            record.Changes = JsonConverter.Serialize(changes);
+            Add(record);
+        }
+
         public void AuditDelete<TEntity>(TEntity entity, string remark = null) where TEntity : class
         {
             if (entity == null) return;

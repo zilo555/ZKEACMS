@@ -2,6 +2,7 @@
  * Copyright (c) ZKEASOFT. All rights reserved. 
  * http://www.zkea.net/licenses */
 
+using Easy.AuditTrail.Attributes;
 using Easy.MetaData;
 using Easy.Models;
 using Easy.RepositoryPattern;
@@ -29,25 +30,25 @@ namespace ZKEACMS.Layout
         public string ContainerClass { get; set; }
         public string Script { get; set; }
         public string Style { get; set; }
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public ZoneCollection Zones { get; set; }
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public ZoneWidgetCollection ZoneWidgets { get; set; }
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public LayoutHtmlCollection Html { get; set; }
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public PageEntity Page { get; set; }
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public PageEntity PreViewPage { get; set; }
 
         public string ImageUrl { get; set; }
         public string ImageThumbUrl { get; set; }
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public ThemeEntity CurrentTheme { get; set; }
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public string Layout { get; set; }
 
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public IEnumerable<WidgetBasePart> Templates { get; set; }
     }
 
