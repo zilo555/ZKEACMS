@@ -127,6 +127,7 @@ namespace ZKEACMS.Updater.Service
             catch (Exception ex)
             {
                 _logger.LogInformation("Getting database version failed. {0}", ex.Message);
+                return Easy.Version.Parse(Version.VersionInfo);
             }
             if (version == null)
             {
