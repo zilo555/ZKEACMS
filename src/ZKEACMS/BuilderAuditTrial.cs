@@ -24,6 +24,7 @@ namespace ZKEACMS
 
             services.AddAuditValueProvider<AuditCarouselValueProvider>();
             services.AddAuditValueProvider<AuditWidgetRuleValueProvider>();
+            services.AddAuditValueProvider<AuditLayoutValueProvider>();
         }
         public static void AddAuditValueProvider<TAuditValueProvider>(this IServiceCollection services)
             where TAuditValueProvider : class, IAuditValueProvider
