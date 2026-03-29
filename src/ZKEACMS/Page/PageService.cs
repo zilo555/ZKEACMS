@@ -118,7 +118,7 @@ namespace ZKEACMS.Page
                 page.Scripts = page.Scripts.RemoveDeletedItems().ToList();
                 page.Script = JsonConverter.Serialize(page.Scripts.Select(m => m.Url));
             }
-        }        
+        }
 
 
         private void PublishAsNew(PageEntity item)
@@ -127,8 +127,8 @@ namespace ZKEACMS.Page
 
             item.IsPublishedPage = true;
             item.PublishDate = DateTime.Now;
-            var zones = _zoneService.GetByPage(item);
-            var layoutHtmls = _layoutHtmlService.GetByPage(item);
+            var zones = _zoneService.GetByPageId(item.ID);
+            var layoutHtmls = _layoutHtmlService.GetByPageId(item.ID);
             var widgets = _widgetService.GetByPageId(item.ID);
             Add(item);
             zones.Each(m =>
@@ -213,6 +213,10 @@ namespace ZKEACMS.Page
             item.IsPublish = false;
             SerializeAssets(item);
             var oldPage = Get(item.ID);
+            if (oldPage.LayoutId != item.LayoutId)
+            {
+                ResetLayout(item.ID);
+            }
             var result = base.Update(item);
             if (!result.HasError)
             {
@@ -265,26 +269,28 @@ namespace ZKEACMS.Page
             {
                 if (page.IsPublishedPage)
                 {
-                    var refPage = Get(page.ReferencePageID);
-                    refPage.IsPublish = false;
-                    Update(refPage);
+                    var editingPageId = page.ReferencePageID;
+                    var editingPage = Get(editingPageId);
+                    editingPage.IsPublish = false;
+                    Update(editingPage);
                     page.Description = _localize.Get("Revert from version: {0:g}").FormatWith(page.PublishDate);
                     PublishAsNew(page);
+                    _auditTrailService.AuditCreate<PageEntity>(editingPageId, _localize.Get("Revert"), page.Description);
                     if (!RetainLatest)
                     {//清空当前的所有修改
 
-                        _layoutHtmlService.Remove(m => m.PageId == page.ReferencePageID);
-                        _zoneService.Remove(m => m.PageId == page.ReferencePageID);
-                        _layoutHtmlService.GetByPage(page).Each(m =>
+                        _layoutHtmlService.Remove(m => m.PageId == editingPageId);
+                        _zoneService.Remove(m => m.PageId == editingPageId);
+                        _layoutHtmlService.GetByPageId(page.ID).Each(m =>
                         {
                             _layoutHtmlService.Add(new LayoutHtml { LayoutId = m.LayoutId, Html = m.Html, PageId = page.ReferencePageID });
                         });
-                        _zoneService.GetByPage(page).Each(m =>
+                        _zoneService.GetByPageId(page.ID).Each(m =>
                         {
-                            m.PageId = page.ReferencePageID;
+                            m.PageId = editingPageId;
                             _zoneService.Add(m);
                         });
-                        _widgetService.GetByPageId(page.ReferencePageID).Each(m =>
+                        _widgetService.GetByPageId(editingPageId).Each(m =>
                         {
                             var widgetService = _widgetActivator.Create(m);
                             widgetService.DeleteWidget(m.ID);
@@ -293,7 +299,7 @@ namespace ZKEACMS.Page
                         {
                             var widgetService = _widgetActivator.Create(m);
                             m = widgetService.GetWidget(m);
-                            m.PageId = page.ReferencePageID;
+                            m.PageId = editingPageId;
                             widgetService.Publish(m);
                         });
                     }
@@ -451,6 +457,13 @@ namespace ZKEACMS.Page
                 _cachedPage.Add(formatedPath, pages);
             }
             return pages.Any();
+        }
+
+        public void ResetLayout(string pageId)
+        {
+            _auditTrailService.AuditDelete<PageEntity>(pageId, _localize.Get("Layout"), _localize.Get("Layout"));
+            _zoneService.Remove(m => m.PageId == pageId);
+            _layoutHtmlService.Remove(m => m.PageId == pageId);
         }
     }
 }

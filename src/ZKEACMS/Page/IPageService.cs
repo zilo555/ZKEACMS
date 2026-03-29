@@ -16,5 +16,6 @@ namespace ZKEACMS.Page
         void Revert(string ID, bool RetainLatest);
         void DeleteVersion(string ID);
         bool IsExists(string path);
+        void ResetLayout(string pageId);
     }
 }

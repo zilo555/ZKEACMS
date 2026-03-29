@@ -90,8 +90,7 @@ namespace ZKEACMS.Layout
             {
                 if (item.Zones != null)
                 {
-                    var zones = _zoneService.GetByPage(new PageEntity { ID = item.Page.ID, LayoutId = item.ID });
-
+                    var zones = _zoneService.GetByPageId(item.Page.ID);
                     item.Zones.Where(m => zones.All(n => n.ID != m.ID)).Each(m =>
                     {
                         m.LayoutId = item.ID;
@@ -134,7 +133,7 @@ namespace ZKEACMS.Layout
             {
                 if (item.Zones != null)
                 {
-                    var zones = _zoneService.Get(m => m.LayoutId == item.ID && m.PageId == null);
+                    var zones = _zoneService.GetByLayoutId(item.ID);
 
                     item.Zones.Where(m => zones.All(n => n.ID != m.ID)).Each(m =>
                     {
@@ -162,7 +161,7 @@ namespace ZKEACMS.Layout
                 }
                 if (item.Html != null)
                 {
-                    _layoutHtmlService.Remove(m => m.LayoutId == item.ID);
+                    _layoutHtmlService.Remove(m => m.LayoutId == item.ID && m.PageId == null);
                     item.Html.Each(m =>
                     {
                         m.LayoutId = item.ID;
@@ -170,8 +169,9 @@ namespace ZKEACMS.Layout
                     });
                 }
             }
-
-
+            _zoneService.ClearCache();
+            _layoutHtmlService.ClearCache();
+            MarkChanged(item);
         }
         public override ErrorOr<LayoutEntity> Update(LayoutEntity item)
         {

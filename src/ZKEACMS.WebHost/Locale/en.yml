@@ -836,3 +836,4 @@ ZoneEntity@Title: Title
 ZoneID: Zone
 EventAction: Event Action
 ShippingOption@Title: Name
+ResetLayoutConfirm: Are you sure you want to reset the layout? All the changes you made to the layout will be lost.

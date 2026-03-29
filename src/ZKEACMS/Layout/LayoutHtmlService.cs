@@ -21,10 +21,10 @@ namespace ZKEACMS.Layout
         private readonly ICacheManager<LayoutHtmlService> _cacheManager;
         private readonly ISignals _signals;
         private const string LayoutHtmlChanged = "LayoutHtmlChanged";
-        public LayoutHtmlService(IApplicationContext applicationContext, 
-            ICacheManager<LayoutHtmlService> cacheManager, 
-            CMSDbContext dbContext, 
-            ISignals signals) 
+        public LayoutHtmlService(IApplicationContext applicationContext,
+            ICacheManager<LayoutHtmlService> cacheManager,
+            CMSDbContext dbContext,
+            ISignals signals)
             : base(applicationContext, dbContext)
         {
             _cacheManager = cacheManager;
@@ -46,18 +46,9 @@ namespace ZKEACMS.Layout
             IEnumerable<LayoutHtml> get()
             {
                 IEnumerable<LayoutHtml> html = Get().Where(m => m.PageId == page.ID).OrderBy(m => m.LayoutHtmlId).ToList();
-                if (!html.Any())
-                {
-                    html = GetByLayoutID(page.LayoutId);
-                    if (ApplicationContext.IsAuthenticated)
-                    {
-                        foreach (var item in html)
-                        {
-                            Add(new LayoutHtml { LayoutId = item.LayoutId, Html = item.Html, PageId = page.ID });
-                        }
-                    }
-                }
-                return html;
+                if (html.Any()) return html;
+
+                return GetByLayoutID(page.LayoutId);
             }
             if (page.IsPublishedPage)
             {
@@ -84,6 +75,11 @@ namespace ZKEACMS.Layout
         public void ClearCache()
         {
             _signals.Trigger(LayoutHtmlChanged);
+        }
+
+        public IEnumerable<LayoutHtml> GetByPageId(string pageId)
+        {
+            return Get().Where(m => m.PageId == pageId).OrderBy(m => m.LayoutHtmlId).ToList();
         }
     }
 }
