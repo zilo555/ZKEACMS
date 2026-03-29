@@ -4,6 +4,7 @@
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using System;
 
 namespace Easy.Serializer
@@ -44,7 +45,8 @@ namespace Easy.Serializer
             var settings = new JsonSerializerSettings()
             {
                 TypeNameHandling = TypeNameHandling.All,
-                MetadataPropertyHandling = MetadataPropertyHandling.ReadAhead
+                MetadataPropertyHandling = MetadataPropertyHandling.ReadAhead,
+                ContractResolver = new IgnoreJsonIgnoreContractResolver()
             };
             return JsonConvert.SerializeObject(obj, settings);
         }
@@ -59,10 +61,24 @@ namespace Easy.Serializer
             var settings = new JsonSerializerSettings()
             {
                 TypeNameHandling = TypeNameHandling.All,
-                MetadataPropertyHandling = MetadataPropertyHandling.ReadAhead
+                MetadataPropertyHandling = MetadataPropertyHandling.ReadAhead,
+                ContractResolver = new IgnoreJsonIgnoreContractResolver()
             };
             
             return JsonConvert.DeserializeObject<T>(json, settings);
-        }        
+        }
+
+        private class IgnoreJsonIgnoreContractResolver : DefaultContractResolver
+        {
+            protected override JsonProperty CreateProperty(System.Reflection.MemberInfo member, MemberSerialization memberSerialization)
+            {
+                var property = base.CreateProperty(member, memberSerialization);
+                if (property.Ignored)
+                {
+                    property.Ignored = false;
+                }
+                return property;
+            }
+        }
     }
 }
