@@ -141,7 +141,7 @@ namespace ZKEACMS.Page
                 m.PageId = item.ID;
                 _layoutHtmlService.Add(m);
             });
-            var pageWidgets = new List<WidgetBase>();
+            var pageContent = new PageContent();
             foreach (var widget in widgets)
             {
                 if (widget.Status == (int)WidgetStatus.Hidden) continue;
@@ -153,7 +153,7 @@ namespace ZKEACMS.Page
                         var fullFillWidget = widgetService.GetWidget(widget);
                         fullFillWidget.PageId = item.ID;
                         widgetService.Publish(fullFillWidget);
-                        pageWidgets.Add(fullFillWidget);
+                        pageContent.Widgets.Add(fullFillWidget);
                     }
                     else if (widget.Status == (int)WidgetStatus.Deleted)
                     {
@@ -161,7 +161,7 @@ namespace ZKEACMS.Page
                     }
                 }
             }
-            item.Content = JsonConverter.SerializePolymorphic(pageWidgets);
+            item.Content = JsonConverter.SerializePolymorphic(pageContent);
             base.Update(item);
         }
 
