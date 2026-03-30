@@ -19,6 +19,14 @@ namespace ZKEACMS.EventAction.Models
     [DataTable("EA_EventAction")]
     public class EventAction : EditorEntity
     {
+        public static Dictionary<string, string> EventNameValueMapping = new Dictionary<string, string>
+        {
+            { "ZKEACMS.Events.OnResetPassword","OnResetPassword" },
+            { "ZKEACMS.Message.Events.OnMessageSubmitted","OnMessageSubmitted" },
+            { "ZKEACMS.Message.Events.OnCommentsSubmitted","OnCommentsSubmitted" },
+            { "ZKEACMS.FormGenerator.Events.OnFormDataSubmitted","OnFormGeneratorFormSubmitted" }
+        };
+
         [Key]
         public int ID { get; set; }
         public string Event { get; set; }
@@ -30,13 +38,7 @@ namespace ZKEACMS.EventAction.Models
         {
             ViewConfig(m => m.ID).AsHidden();
             ViewConfig(m => m.Title).AsTextBox().Order(1).Required().ShowInGrid().Search(Easy.LINQ.Query.Operators.Contains).MaxLength(200);
-            ViewConfig(m => m.Event).AsDropDownList().Required().DataSource(new Dictionary<string, string>
-            {
-                { "ZKEACMS.Events.OnResetPassword","OnResetPassword" },
-                { "ZKEACMS.Message.Events.OnMessageSubmitted","OnMessageSubmitted" },
-                { "ZKEACMS.Message.Events.OnCommentsSubmitted","OnCommentsSubmitted" },
-                { "ZKEACMS.FormGenerator.Events.OnFormDataSubmitted","OnFormGeneratorFormSubmitted" }
-            }).ShowInGrid();
+            ViewConfig(m => m.Event).AsDropDownList().Required().DataSource(() => EventAction.EventNameValueMapping).ShowInGrid();
             ViewConfig(m => m.Actions).AsTextArea().Required().AsCodeEditor("yaml");
         }
     }
