@@ -9,6 +9,7 @@ using Easy.Modules.User.Models;
 using Easy.Extend;
 using Microsoft.Extensions.DependencyInjection;
 using Easy.RepositoryPattern;
+using Easy.AuditTrail.Attributes;
 
 namespace Easy.Modules.Role
 {
@@ -17,6 +18,7 @@ namespace Easy.Modules.Role
     {
         [Key]
         public int ID { get; set; }
+        [AuditKey]
         public int RoleID { get; set; }
         public string UserID { get; set; }
         [NotMapped]

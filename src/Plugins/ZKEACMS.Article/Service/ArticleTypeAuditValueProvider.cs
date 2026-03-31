@@ -34,13 +34,12 @@ namespace ZKEACMS.Article.Service
 
         public string GetDisplayValue(PropertyInfo property, object rawValue)
         {
-            if (rawValue != null && int.TryParse(rawValue.ToString(), out int articleTypeID))
+            if (rawValue is int articleTypeID)
             {
                 var articleType = _articleTypeService.Get(articleTypeID);
-                if (articleType != null)
-                {
-                    return articleType.Title;
-                }
+                if (articleType == null) return rawValue.ToString();
+
+                return articleType.Title;
             }
             return rawValue?.ToString() ?? string.Empty;
         }

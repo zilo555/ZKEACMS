@@ -68,6 +68,7 @@ namespace ZKEACMS.Controllers
                 {
                     entity.PhotoUrl = url;
                 }
+                entity.UseAudit();
                 return base.Edit(entity);
             }
             catch (Exception ex)

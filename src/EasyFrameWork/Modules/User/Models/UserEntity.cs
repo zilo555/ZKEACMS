@@ -9,6 +9,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Principal;
 using Easy.RepositoryPattern;
+using Easy.AuditTrail.Attributes;
 
 namespace Easy.Modules.User.Models
 {
@@ -17,46 +18,62 @@ namespace Easy.Modules.User.Models
     {
         [Key]
         public string UserID { get; set; }
-        /// <summary>
-        /// 密码
-        /// </summary>
+
+        [AuditIgnore]
         public string PassWord { get; set; }
-        [NotMapped]
+
+        [NotMapped, AuditIgnore]
         public string PassWordNew { get; set; }
-        /// <summary>
-        /// 时间戳
-        /// </summary>
+
+        [AuditIgnore]
         public long Timestamp { get; set; }
-        /// <summary>
-        /// 登陆IP
-        /// </summary>
+
+        [AuditIgnore]
         public string LoginIP { get; set; }
         public string PhotoUrl { get; set; }
         public int? UserTypeCD { get; set; }
-        /// <summary>
-        /// 最后登陆时间
-        /// </summary>
+
+        [AuditIgnore]
         public DateTime? LastLoginDate { get; set; }
 
         public string UserName { get; set; }
 
+        [AuditIgnore]
         public string ApiLoginToken { get; set; }
 
-        [NotMapped]        
-        public virtual List<UserRoleRelation> Roles { get; set; }
         [NotMapped]
+        public virtual List<UserRoleRelation> Roles { get; set; }
+
+        [NotMapped, AuditIgnore]
         public override string Title
         {
-            get;set;
+            get; set;
         }
-        [NotMapped]
+
+        [NotMapped, AuditIgnore]
         public string AuthenticationType { get; set; }
-        [NotMapped]
+
+        [NotMapped, AuditIgnore]
         public bool IsAuthenticated { get; set; }
-        [NotMapped]
+
+        [NotMapped, AuditIgnore]
         public string Name { get { return UserID; } }
+
+        [AuditIgnore]
         public string ResetToken { get; set; }
+
+        [AuditIgnore]
         public DateTime? ResetTokenDate { get; set; }
+
+        bool _audit = false;
+        public void UseAudit()
+        {
+            _audit = true;
+        }
+        public bool NeedAudit()
+        {
+            return _audit;
+        }
     }
     class UserMetaData : ViewMetaData<UserEntity>
     {

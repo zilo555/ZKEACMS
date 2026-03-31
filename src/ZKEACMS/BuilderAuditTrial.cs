@@ -4,6 +4,8 @@
 
 
 using Easy.AuditTrail;
+using Easy.Modules.Role;
+using Easy.Modules.User.Service;
 using Microsoft.Extensions.DependencyInjection;
 using ZKEACMS.Common.Service;
 
@@ -25,6 +27,8 @@ namespace ZKEACMS
             services.AddAuditValueProvider<AuditCarouselValueProvider>();
             services.AddAuditValueProvider<AuditWidgetRuleValueProvider>();
             services.AddAuditValueProvider<AuditLayoutValueProvider>();
+            services.AddAuditValueProvider<UserDictionaryAuditValueProvider>();
+            services.AddAuditValueProvider<RoleAuditValueProvider>();
         }
         public static void AddAuditValueProvider<TAuditValueProvider>(this IServiceCollection services)
             where TAuditValueProvider : class, IAuditValueProvider
