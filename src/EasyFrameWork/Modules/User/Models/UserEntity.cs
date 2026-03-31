@@ -97,7 +97,7 @@ namespace Easy.Modules.User.Models
             ViewConfig(p => p.LastLoginDate).AsTextBox().Hide().FormatAsDate();
             ViewConfig(p => p.Sex).AsDropDownList().DataSource(SourceType.Dictionary);
             ViewConfig(p => p.MaritalStatus).AsDropDownList().DataSource(SourceType.Dictionary);
-            ViewConfig(p => p.Roles).AsListEditor();
+            ViewConfig(p => p.Roles).AsCheckBox().SetTemplate("UserRoles");
             ViewConfig(p => p.Description).AsTextArea();
             ViewConfig(p => p.PhotoUrl).AsFileInput();
             ViewConfig(p => p.UserTypeCD).AsDropDownList().DataSource(SourceType.Dictionary);

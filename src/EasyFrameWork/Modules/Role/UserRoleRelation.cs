@@ -18,7 +18,7 @@ namespace Easy.Modules.Role
     {
         [Key]
         public int ID { get; set; }
-        [AuditKey]
+        [AuditKey, AuditTitle]
         public int RoleID { get; set; }
         public string UserID { get; set; }
         [NotMapped]

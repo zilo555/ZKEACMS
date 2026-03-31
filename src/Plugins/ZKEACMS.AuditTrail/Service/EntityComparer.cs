@@ -190,7 +190,7 @@ namespace ZKEACMS.AuditTrail.Service
                 {
                     // Added item
                     var addedItem = newDict[key];
-                    var keyAndTitle = GetKeyAndTitle(keyProperties, titleProperties, addedItem);
+                    var keyAndTitle = GetKeyAndTitle(keyProperties, titleProperties, addedItem, valueProviders);
                     changes.Add(new FieldChange
                     {
                         Field = fieldName,
@@ -202,7 +202,7 @@ namespace ZKEACMS.AuditTrail.Service
                 {
                     // Removed item
                     var removedItem = oldDict[key];
-                    var keyAndTitle = GetKeyAndTitle(keyProperties, titleProperties, removedItem);
+                    var keyAndTitle = GetKeyAndTitle(keyProperties, titleProperties, removedItem, valueProviders);
                     changes.Add(new FieldChange
                     {
                         Field = fieldName,
@@ -218,7 +218,7 @@ namespace ZKEACMS.AuditTrail.Service
 
                     if (!AreEqual(oldItem, newItem))
                     {
-                        var keyAndTitle = GetKeyAndTitle(keyProperties, titleProperties, oldItem);
+                        var keyAndTitle = GetKeyAndTitle(keyProperties, titleProperties, oldItem, valueProviders);
                         CompareRecursive(oldItem, newItem, $"{fieldName}[{keyAndTitle}]", changes, valueProviders, null);
                     }
                 }
@@ -355,21 +355,21 @@ namespace ZKEACMS.AuditTrail.Service
             return property.Name;
         }
 
-        public static string GetKeyAndTitle<TEntity>(TEntity item) where TEntity : class
+        public static string GetKeyAndTitle<TEntity>(TEntity item, IEnumerable<IAuditValueProvider> valueProviders = null) where TEntity : class
         {
             var type = typeof(TEntity);
             var keyProperties = GetKeyProperties(type);
             var titleProperties = GetTitleProperties(type);
-            return GetKeyAndTitle(keyProperties, titleProperties, item);
+            return GetKeyAndTitle(keyProperties, titleProperties, item, valueProviders);
         }
 
         /// <summary>
         /// Get combined key and title information for composite keys/titles
         /// </summary>
-        private static string GetKeyAndTitle(PropertyInfo[] keyProperties, PropertyInfo[] titleProperties, object item)
+        private static string GetKeyAndTitle(PropertyInfo[] keyProperties, PropertyInfo[] titleProperties, object item, IEnumerable<IAuditValueProvider> valueProviders = null)
         {
             var keyValue = GetCombinedKeyValue(keyProperties, item);
-            var titleValue = GetCombinedTitleValue(titleProperties, item);
+            var titleValue = GetCombinedTitleValue(titleProperties, item, valueProviders);
 
             if (string.IsNullOrEmpty(titleValue))
             {
@@ -390,7 +390,7 @@ namespace ZKEACMS.AuditTrail.Service
         /// <summary>
         /// Gets the combined value of all title properties sorted by Order
         /// </summary>
-        private static string GetCombinedTitleValue(PropertyInfo[] titleProperties, object item)
+        private static string GetCombinedTitleValue(PropertyInfo[] titleProperties, object item, IEnumerable<IAuditValueProvider> valueProviders = null)
         {
             if (titleProperties == null || !titleProperties.Any())
             {
@@ -405,7 +405,7 @@ namespace ZKEACMS.AuditTrail.Service
                 var valueType = value.GetType();
                 if (IsValueType(valueType))
                 {
-                    return value.ToString();
+                    return SerializeValue(value, prop, valueProviders);
                 }
                 var childKeys = valueType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(child => child.GetCustomAttribute<AuditTitleAttribute>() != null)
@@ -414,7 +414,7 @@ namespace ZKEACMS.AuditTrail.Service
 
                 if (childKeys.Length == 0) throw new InvalidOperationException($"Title property '{prop.Name}' of type '{valueType.Name}' must have at least one property marked with [AuditTitle] attribute for auditing.");
 
-                return GetCombinedTitleValue(childKeys, value);
+                return GetCombinedTitleValue(childKeys, value, valueProviders);
             }).Where(v => v != null).ToArray();
             return string.Join(", ", titleValues); // Using comma space to join title parts
         }
