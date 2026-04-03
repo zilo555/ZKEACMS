@@ -99,6 +99,7 @@
                     <th>@L("ContentType@Fields")</th>
                     <th>@L("Old Value")</th>
                     <th>@L("New Value")</th>
+                    <td>@L("Description")</td>
                     <th style="width: 140px;">@L("LastUpdateByName")</th>
                     <th style="width: 155px;">@L("Last-Modified")</th>
                 </tr>
@@ -137,6 +138,9 @@
                                 {
                                     <div class="new-value-cell text-success text-ellipsis">@change.NewValue</div>
                                 }
+                            </td>
+                            <td>
+                                @record.Description
                             </td>
                             @if (i == 0)
                             {

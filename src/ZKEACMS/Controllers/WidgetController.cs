@@ -122,11 +122,11 @@ namespace ZKEACMS.Controllers
                 _auditTrailService.AuditCreate<LayoutEntity>(widget.LayoutId, _localize.Get("Widget"), widget.WidgetName);
             }
         }
-        private void AuditWidgetDelete(WidgetBase widget)
+        private void AuditWidgetDelete(WidgetBase widget, string remark = null)
         {
             if (widget.PageId.IsNotNullAndWhiteSpace())
             {
-                _auditTrailService.AuditDelete<PageEntity>(widget.PageId, _localize.Get("Widget"), widget.WidgetName);
+                _auditTrailService.AuditDelete<PageEntity>(widget.PageId, _localize.Get("Widget"), widget.WidgetName, remark);
             }
             else if (widget.LayoutId.IsNotNullAndWhiteSpace())
             {
@@ -253,7 +253,7 @@ namespace ZKEACMS.Controllers
                 return RedirectToAction("Design", "Page", new { ID = widget.PageId });
             }
             return RedirectToAction("LayoutWidget", "Layout");
-        }        
+        }
 
         [HttpPost]
         public JsonResult SaveWidgetZone([FromBody] List<WidgetBase> widgets)
@@ -283,6 +283,7 @@ namespace ZKEACMS.Controllers
             {
                 widget.Status = (int)WidgetStatus.Deleted;
                 _widgetService.Update(widget);
+                AuditWidgetDelete(widget, _localize.Get("Status") + " >>> " + _localize.Get("Deleted"));
                 return Json(new { ActionType = (int)ActionType.Update });
             }
         }
