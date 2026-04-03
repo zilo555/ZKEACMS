@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using Easy;
+using Easy.AuditTrail;
 using Easy.Cache;
 using Easy.Constant;
 using Easy.Extend;
@@ -19,14 +20,17 @@ namespace ZKEACMS.Setting
     {
         private readonly IDataArchivedService _dataArchivedService;
         private readonly ICacheManager<ApplicationSettingService> _cacheManager;
+        private readonly IAuditTrailService _auditTrailService;
         private const string ApplicationSetting = "ApplicationSetting";
         public ApplicationSettingService(IApplicationContext applicationContext,
             IDataArchivedService dataArchivedService,
             ICacheManager<ApplicationSettingService> cacheManager,
-            CMSDbContext dbContext) : base(applicationContext, dbContext)
+            CMSDbContext dbContext,
+            IAuditTrailService auditTrailService) : base(applicationContext, dbContext)
         {
             _dataArchivedService = dataArchivedService;
             _cacheManager = cacheManager;
+            _auditTrailService = auditTrailService;
         }
 
         public override DbSet<ApplicationSetting> CurrentDbSet => DbContext.ApplicationSetting;
@@ -79,7 +83,13 @@ namespace ZKEACMS.Setting
         public override ErrorOr<ApplicationSetting> Update(ApplicationSetting item)
         {
             _cacheManager.Remove(item.SettingKey);
-            return base.Update(item);
+            var oldItem = Get(item.SettingKey);
+            var result = base.Update(item);
+            if (result.IsSuccess)
+            {
+                _auditTrailService.AuditUpdate(oldItem, item);
+            }
+            return result;
         }
 
         public override void Remove(ApplicationSetting item)

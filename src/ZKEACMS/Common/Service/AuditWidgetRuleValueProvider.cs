@@ -21,6 +21,12 @@ namespace ZKEACMS.Common.Service
     public class AuditWidgetRuleValueProvider : IAuditValueProvider
     {
         private readonly IRuleService _ruleService;
+
+        public AuditWidgetRuleValueProvider(IRuleService ruleService)
+        {
+            _ruleService = ruleService;
+        }
+
         public int Priority => 10;
         public bool CanHandle(PropertyInfo property, Type entityType)
         {
