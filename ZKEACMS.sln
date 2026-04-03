@@ -79,6 +79,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MsSql2Any", "tools\MsSql2An
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MsSql2Any.Test", "test\MsSql2Any.Test\MsSql2Any.Test.csproj", "{83A039D9-3B82-4ACD-82BE-095F50997584}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestStaticFiles", "tools\TestStaticFiles\TestStaticFiles.csproj", "{59EFA374-DA89-41E5-86F7-2F90D02A0C86}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -213,6 +215,10 @@ Global
 		{83A039D9-3B82-4ACD-82BE-095F50997584}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83A039D9-3B82-4ACD-82BE-095F50997584}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{83A039D9-3B82-4ACD-82BE-095F50997584}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59EFA374-DA89-41E5-86F7-2F90D02A0C86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59EFA374-DA89-41E5-86F7-2F90D02A0C86}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59EFA374-DA89-41E5-86F7-2F90D02A0C86}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59EFA374-DA89-41E5-86F7-2F90D02A0C86}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -250,6 +256,7 @@ Global
 		{98FE7CE4-FAF4-7E35-A0D8-C1FF54467A43} = {40CEE771-5C31-44A8-9C2E-AC25263872CA}
 		{5B759695-7F60-44DE-BB4D-203850D4793E} = {0B4542D1-4A9B-4C97-A067-D35E924DA9BD}
 		{83A039D9-3B82-4ACD-82BE-095F50997584} = {40CEE771-5C31-44A8-9C2E-AC25263872CA}
+		{59EFA374-DA89-41E5-86F7-2F90D02A0C86} = {0B4542D1-4A9B-4C97-A067-D35E924DA9BD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {ABBB3E10-D2E8-438B-B5BB-AB4E824BCB6A}

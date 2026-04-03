@@ -57,10 +57,13 @@ namespace Easy.Mvc.Plugin
 
         private Stream GetFileStream(string path)
         {
-            var fileInfo = GetFileInfo(path);
-            if (fileInfo.Exists) return fileInfo.OpenRead();
+            var stream = GetManifestResourceStream(path);
+            if (stream != null) return stream;
 
-            return GetManifestResourceStream(path);
+            var fileInfo = GetFileInfo(path);
+            if (!fileInfo.Exists) return null;
+            
+            return fileInfo.OpenRead();            
         }
 
         private Stream GetManifestResourceStream(string filePath)
