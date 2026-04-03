@@ -131,7 +131,7 @@ static async Task<int> MainAsync(string[] args)
 		{
 			Uri target;
 			try { target = new Uri(baseUri, r.url.TrimStart('/')); }
-			catch { target = new Uri(baseUri, Uri.EscapeUriString(r.url.TrimStart('/'))); }
+			catch { target = new Uri(baseUri, Uri.EscapeDataString(r.url.TrimStart('/'))); }
 			try
 			{
 				using var req = new HttpRequestMessage(HttpMethod.Get, target);
