@@ -1,4 +1,4 @@
--- Script Date: 2024/11/16 星期六 13:53  - ErikEJ.SqlCeScripting version 3.5.2.56
+-- Script Date: 2026/4/4 星期六 12:35  - ErikEJ.SqlCeScripting version 3.5.2.56
 SELECT 1;
 PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
@@ -1080,6 +1080,23 @@ CREATE TABLE [Basket] (
 , [LastUpdateDate] datetime NULL
 , CONSTRAINT [PK_Basket] PRIMARY KEY ([ID])
 );
+CREATE TABLE [AuditTrail] (
+  [ID] INTEGER NOT NULL
+, [EntityType] nvarchar(100) NOT NULL
+, [EntityID] nchar(50) NOT NULL
+, [IPAddress] nchar(10) NULL
+, [Changes] ntext NULL
+, [Title] nvarchar(200) NULL
+, [Description] nvarchar(500) NULL
+, [Status] int NULL
+, [CreateBy] nvarchar(50) NULL
+, [CreatebyName] nvarchar(100) NULL
+, [CreateDate] datetime NULL
+, [LastUpdateBy] nvarchar(50) NULL
+, [LastUpdateByName] nvarchar(100) NULL
+, [LastUpdateDate] datetime NULL
+, CONSTRAINT [PK_AuditTrail] PRIMARY KEY ([ID])
+);
 CREATE TABLE [ArticleTypeWidget] (
   [ID] nvarchar(100) NOT NULL
 , [ArticleTypeID] int NULL
@@ -1522,7 +1539,7 @@ INSERT INTO [EA_ActionBody] ([ID],[Body],[Title],[Description],[Status],[CreateB
         </tbody>
     </table>
 </div>','自定义表单邮件模板',NULL,1,'admin','ZKEASOFT','2023-03-11 22:06:21.000','admin','ZKEASOFT','2023-03-16 22:03:40.576');
-INSERT INTO [DBVersion] ([ID],[Major],[Minor],[Revision],[Build]) VALUES (1,4,2,0,0);
+INSERT INTO [DBVersion] ([ID],[Major],[Minor],[Revision],[Build]) VALUES (1,4,4,0,0);
 INSERT INTO [DataDictionary] ([ID],[DicName],[Title],[DicValue],[Order],[Pid],[IsSystem],[ImageUrl],[ImageThumbUrl],[Description],[Status],[CreateBy],[CreatebyName],[CreateDate],[LastUpdateBy],[LastUpdateByName],[LastUpdateDate]) VALUES (1,'RecordStatus','Active','1',1,0,1,NULL,NULL,NULL,0,NULL,NULL,NULL,NULL,NULL,NULL);
 INSERT INTO [DataDictionary] ([ID],[DicName],[Title],[DicValue],[Order],[Pid],[IsSystem],[ImageUrl],[ImageThumbUrl],[Description],[Status],[CreateBy],[CreatebyName],[CreateDate],[LastUpdateBy],[LastUpdateByName],[LastUpdateDate]) VALUES (2,'RecordStatus','Inactive','2',2,0,1,NULL,NULL,NULL,0,NULL,NULL,NULL,NULL,NULL,NULL);
 INSERT INTO [DataDictionary] ([ID],[DicName],[Title],[DicValue],[Order],[Pid],[IsSystem],[ImageUrl],[ImageThumbUrl],[Description],[Status],[CreateBy],[CreatebyName],[CreateDate],[LastUpdateBy],[LastUpdateByName],[LastUpdateDate]) VALUES (3,'ArticleCategory','News','1',1,0,1,NULL,NULL,NULL,0,NULL,NULL,NULL,NULL,NULL,NULL);

@@ -145,6 +145,27 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
+CREATE TABLE [dbo].[AuditTrail](
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[EntityType] [nvarchar](100) NOT NULL,
+	[EntityID] [nchar](50) NOT NULL,
+	[IPAddress] [nchar](10) NULL,
+	[Changes] [nvarchar](max) NULL,
+	[Title] [nvarchar](200) NULL,
+	[Description] [nvarchar](500) NULL,
+	[Status] [int] NULL,
+	[CreateBy] [nvarchar](50) NULL,
+	[CreatebyName] [nvarchar](100) NULL,
+	[CreateDate] [datetime2](7) NULL,
+	[LastUpdateBy] [nvarchar](50) NULL,
+	[LastUpdateByName] [nvarchar](100) NULL,
+	[LastUpdateDate] [datetime2](7) NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
 CREATE TABLE [dbo].[Basket](
 	[ID] [int] IDENTITY(1,1) NOT NULL,
 	[UserId] [nvarchar](50) NOT NULL,
@@ -1541,6 +1562,11 @@ ALTER TABLE [dbo].[ArticleTypeWidget] ADD  CONSTRAINT [PK_ArticleTypeWidget] PRI
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 GO
+ALTER TABLE [dbo].[AuditTrail] ADD  CONSTRAINT [PK_AuditTrail] PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+GO
 ALTER TABLE [dbo].[Basket] ADD  CONSTRAINT [PK_Basket] PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
@@ -2741,7 +2767,7 @@ INSERT [dbo].[DataDictionary] ([ID], [DicName], [Title], [DicValue], [Order], [P
 SET IDENTITY_INSERT [dbo].[DataDictionary] OFF
 SET IDENTITY_INSERT [dbo].[DBVersion] ON 
 
-INSERT [dbo].[DBVersion] ([ID], [Major], [Minor], [Revision], [Build]) VALUES (1, 4, 2, 0, 0)
+INSERT [dbo].[DBVersion] ([ID], [Major], [Minor], [Revision], [Build]) VALUES (1, 4, 4, 0, 0)
 SET IDENTITY_INSERT [dbo].[DBVersion] OFF
 SET IDENTITY_INSERT [dbo].[EA_ActionBody] ON 
 
