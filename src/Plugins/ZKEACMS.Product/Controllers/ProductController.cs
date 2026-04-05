@@ -16,7 +16,6 @@ using ZKEACMS.Product.ActionFilter;
 using ZKEACMS.Product.Models;
 using ZKEACMS.Product.Service;
 using ZKEACMS.Product.ViewModel;
-using ZKEACMS.StructuredData;
 
 namespace ZKEACMS.Product.Controllers
 {
