@@ -1,5 +1,10 @@
 @model bool?
 @{
     var descriptor = ViewData.ModelMetadata.GetViewDescriptor();
+    descriptor.Classes.Remove("form-control");
 }
-@Html.CheckBox("", Model, descriptor?.ToHtmlProperties())
+<div class="checkbox">
+    <label>
+        @Html.CheckBox("", Model, descriptor?.ToHtmlProperties())
+    </label>    
+</div>

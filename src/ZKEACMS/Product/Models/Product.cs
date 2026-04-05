@@ -115,8 +115,9 @@ namespace ZKEACMS.Product.Models
             ViewConfig(m => m.ProductImages).AsListEditor();
 
             ViewConfig(m => m.ProductContent).AsTextArea().AddClass("html");
+            ViewConfig(m => m.PublishDate).AsTextBox().FormatAsDateTime();
+            ViewConfig(m => m.IsPublish).AsCheckBox();
             ViewConfig(m => m.Description).AsTextArea();
-            ViewConfig(m => m.IsPublish).AsTextBox().Hide();
         }
     }
 

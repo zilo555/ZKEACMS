@@ -155,7 +155,7 @@ namespace Easy.ViewPort.Descriptor
             Dictionary<string, object> result = new Dictionary<string, object>();
             const string formControl = "form-control";
             const string required = "required";
-            if (!Classes.Contains(formControl))
+            if (!Classes.Contains(formControl) && TagType != HTMLEnumerate.HTMLTagTypes.CheckBox)
             {
                 Classes.Add(formControl);
             }
