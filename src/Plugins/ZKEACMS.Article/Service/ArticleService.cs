@@ -111,7 +111,8 @@ namespace ZKEACMS.Article.Service
             }
             if (article.ID > 0)
             {
-                Update(article);
+                _auditTrailService.AuditUpdate(Get(article.ID), article);
+                base.Update(article);
                 _eventManager.Trigger(Events.OnArticlePublished, article);
             }
         }

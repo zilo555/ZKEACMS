@@ -210,9 +210,13 @@ namespace ZKEACMS.Product.Service
         public void Publish(ProductEntity product)
         {
             product.IsPublish = true;
-            product.PublishDate = DateTime.Now;
+            if (product.PublishDate == null)
+            {
+                product.PublishDate = DateTime.Now;
+            }            
             if (product.ID > 0)
             {
+                _auditTrailService.AuditUpdate(Get(product.ID), product);
                 base.Update(product);
             }
             _eventManager.Trigger(Events.OnProductPublished, product);
