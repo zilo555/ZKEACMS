@@ -102,6 +102,10 @@ namespace ZKEACMS.SectionWidget
             serviceCollection.ConfigureMetaData<Models.SectionWidget, SectionWidgetMetaData>();
 
             serviceCollection.RegistEvent<UpdateLinkOnPageUrlChangedEventHandler>(Event.Events.OnPageUrlChanged);
+
+            serviceCollection.AddAuditValueProvider<SectionContentAuditDisplayProvider>();
+            serviceCollection.AddAuditValueProvider<SectionContentTypeAuditValueProvider>();
+            serviceCollection.AddAuditValueProvider<SectionGroupTemplateAuditValueProvider>();
         }
 
     }

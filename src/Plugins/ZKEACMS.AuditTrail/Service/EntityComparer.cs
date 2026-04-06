@@ -169,18 +169,27 @@ namespace ZKEACMS.AuditTrail.Service
                 return;
             }
 
-            // Get key properties (supporting composite keys)
-            var keyProperties = GetKeyProperties(elementType);
-            var titleProperties = GetTitleProperties(elementType);
-
-            if (!keyProperties.Any())
-            {
-                throw new InvalidOperationException($"Collection element type '{elementType.Name}' must have at least one property marked with [AuditKey] attribute for auditing.");
-            }
-
-            // Compare by key combination
-            var oldDict = oldItems.ToDictionary(item => GetCombinedKeyValue(keyProperties, item));
-            var newDict = newItems.ToDictionary(item => GetCombinedKeyValue(keyProperties, item));
+            // Compare by key combination, using each item's runtime type to get key/title properties
+            var oldDict = oldItems.ToDictionary(
+                item =>
+                {
+                    var key = GetItemKey(item, valueProviders);
+                    if (key.EndsWith(":"))
+                    {
+                        throw new InvalidOperationException($"Collection item type '{item.GetType().Name}' must have at least one property marked with [AuditKey] attribute for auditing.");
+                    }
+                    return key;
+                });
+            var newDict = newItems.ToDictionary(
+                item =>
+                {
+                    var key = GetItemKey(item, valueProviders);
+                    if (key.EndsWith(":"))
+                    {
+                        throw new InvalidOperationException($"Collection item type '{item.GetType().Name}' must have at least one property marked with [AuditKey] attribute for auditing.");
+                    }
+                    return key;
+                });
 
             var allKeys = oldDict.Keys.Union(newDict.Keys).ToList();
 
@@ -190,7 +199,7 @@ namespace ZKEACMS.AuditTrail.Service
                 {
                     // Added item
                     var addedItem = newDict[key];
-                    var keyAndTitle = GetKeyAndTitle(keyProperties, titleProperties, addedItem, valueProviders);
+                    var keyAndTitle = GetItemKeyAndTitle(addedItem, valueProviders);
                     changes.Add(new FieldChange
                     {
                         Field = fieldName,
@@ -202,7 +211,7 @@ namespace ZKEACMS.AuditTrail.Service
                 {
                     // Removed item
                     var removedItem = oldDict[key];
-                    var keyAndTitle = GetKeyAndTitle(keyProperties, titleProperties, removedItem, valueProviders);
+                    var keyAndTitle = GetItemKeyAndTitle(removedItem, valueProviders);
                     changes.Add(new FieldChange
                     {
                         Field = fieldName,
@@ -218,7 +227,7 @@ namespace ZKEACMS.AuditTrail.Service
 
                     if (!AreEqual(oldItem, newItem))
                     {
-                        var keyAndTitle = GetKeyAndTitle(keyProperties, titleProperties, oldItem, valueProviders);
+                        var keyAndTitle = GetItemKeyAndTitle(oldItem, valueProviders);
                         CompareRecursive(oldItem, newItem, $"{fieldName}[{keyAndTitle}]", changes, valueProviders, null);
                     }
                 }
@@ -368,7 +377,7 @@ namespace ZKEACMS.AuditTrail.Service
         /// </summary>
         private static string GetKeyAndTitle(PropertyInfo[] keyProperties, PropertyInfo[] titleProperties, object item, IEnumerable<IAuditValueProvider> valueProviders = null)
         {
-            var keyValue = GetCombinedKeyValue(keyProperties, item);
+            var keyValue = GetCombinedKeyValue(keyProperties, item, valueProviders);
             var titleValue = GetCombinedTitleValue(titleProperties, item, valueProviders);
 
             if (string.IsNullOrEmpty(titleValue))
@@ -380,11 +389,59 @@ namespace ZKEACMS.AuditTrail.Service
         }
 
         /// <summary>
+        /// Get key and title for an item using its runtime type
+        /// </summary>
+        private static string GetItemKeyAndTitle(object item, IEnumerable<IAuditValueProvider> valueProviders = null)
+        {
+            var type = item.GetType();
+            var keyProperties = GetKeyProperties(type);
+            var titleProperties = GetTitleProperties(type);
+            return GetKeyAndTitle(keyProperties, titleProperties, item, valueProviders);
+        }
+
+        /// <summary>
         /// Gets the combined value of all key properties sorted by Order
         /// </summary>
-        private static string GetCombinedKeyValue(PropertyInfo[] keyProperties, object item)
+        private static string GetCombinedKeyValue(PropertyInfo[] keyProperties, object item, IEnumerable<IAuditValueProvider> valueProviders = null)
         {
-            return AuditKeyAttribute.GetCombinedKeyValue(keyProperties, item);
+            if (keyProperties == null || !keyProperties.Any())
+            {
+                return "";
+            }
+
+            var keyValues = keyProperties.Select(prop =>
+            {
+                var value = prop.GetValue(item);
+                if (value == null) return null;
+
+                var valueType = value.GetType();
+                if (IsValueType(valueType))
+                {
+                    return SerializeValue(value, prop, valueProviders);
+                }
+                var childKeys = valueType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(child => child.GetCustomAttribute<AuditKeyAttribute>() != null)
+                .OrderBy(child => child.GetCustomAttribute<AuditKeyAttribute>().Order)
+                .ToArray();
+
+                if (childKeys.Length == 0) throw new InvalidOperationException($"Key property '{prop.Name}' of type '{valueType.Name}' must have at least one property marked with [AuditKey] attribute for auditing.");
+
+                return GetCombinedKeyValue(childKeys, value, valueProviders);
+            }).Where(m => m != null)
+            .ToArray();
+
+            return string.Join("|", keyValues);
+        }
+
+        /// <summary>
+        /// Get key for an item using its runtime type, includes type information to distinguish different derived types
+        /// </summary>
+        private static string GetItemKey(object item, IEnumerable<IAuditValueProvider> valueProviders = null)
+        {
+            var type = item.GetType();
+            var keyProperties = GetKeyProperties(type);
+            var typePrefix = type.FullName;
+            return $"{typePrefix}:{GetCombinedKeyValue(keyProperties, item, valueProviders)}";
         }
 
         /// <summary>

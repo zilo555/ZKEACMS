@@ -7,12 +7,14 @@ using Easy.MetaData;
 using System.ComponentModel.DataAnnotations.Schema;
 using ZKEACMS.Extend;
 using Easy.RepositoryPattern;
+using Easy.AuditTrail.Attributes;
 
 namespace ZKEACMS.SectionWidget.Models
 {
     [DataTable("SectionContentCallToAction")]
     public class SectionContentCallToAction : SectionContentBasic
     {
+        [AuditTitle]
         public string InnerText { get; set; }
         public string Href { get; set; }
         [NotMapped]

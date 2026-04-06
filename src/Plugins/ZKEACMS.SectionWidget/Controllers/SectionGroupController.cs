@@ -11,10 +11,12 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using ZKEACMS.PackageManger;
 using ZKEACMS.SectionWidget.Models;
 using ZKEACMS.SectionWidget.Service;
 using ZKEACMS.Widget;
+using ZKEACMS.Event;
 
 namespace ZKEACMS.SectionWidget.Controllers
 {
@@ -23,22 +25,27 @@ namespace ZKEACMS.SectionWidget.Controllers
     {
         private readonly ISectionGroupService _sectionGroupService;
         private readonly ISectionContentProviderService _sectionContentProviderService;
-        private readonly IWidgetBasePartService _widgetService;
+        private readonly IWidgetBasePartService _widgetBasePartService;
         private readonly IPackageInstallerProvider _packageInstallerProvider;
         private readonly IWidgetActivator _widgetActivator;
         private readonly ILocalize _localize;
+        private readonly IEventManager _eventManager;
+        
         public SectionGroupController(ISectionGroupService sectionGroupService,
             ISectionContentProviderService sectionContentProviderService,
-            IWidgetBasePartService widgetService, IPackageInstallerProvider packageInstallerProvider,
+            IWidgetBasePartService widgetBasePartService,
+            IPackageInstallerProvider packageInstallerProvider,
             ILocalize localize,
-            IWidgetActivator widgetActivator)
+            IWidgetActivator widgetActivator,
+            IEventManager eventManager)
         {
             _sectionGroupService = sectionGroupService;
             _sectionContentProviderService = sectionContentProviderService;
-            _widgetService = widgetService;
+            _widgetBasePartService = widgetBasePartService;
             _packageInstallerProvider = packageInstallerProvider;
             _widgetActivator = widgetActivator;
             _localize = localize;
+            _eventManager = eventManager;
         }
 
         public ActionResult Create(string sectionWidgetId)
@@ -66,6 +73,10 @@ namespace ZKEACMS.SectionWidget.Controllers
             {
                 return View("Form", group);
             }
+            
+            var widget = _widgetBasePartService.Get(group.SectionWidgetId);
+            _eventManager.Trigger(Events.OnWidgetUpdating, widget);
+            
             if (group.ActionType.HasFlag(ActionType.Create))
             {
                 _sectionGroupService.Add(group);
@@ -74,34 +85,60 @@ namespace ZKEACMS.SectionWidget.Controllers
             {
                 _sectionGroupService.Update(group);
             }
+            
+            _eventManager.Trigger(Events.OnWidgetUpdated, widget);
+            
             ViewBag.Close = true;
             return View("Form", group);
         }
 
         public JsonResult Delete(string Id)
         {
-            _sectionGroupService.Remove(Id);
+            var group = _sectionGroupService.Get(Id);
+            var widgetId = group.SectionWidgetId;
+            
+            var widget = _widgetBasePartService.Get(widgetId);
+            _eventManager.Trigger(Events.OnWidgetUpdating, widget);
+            
+            _sectionGroupService.Remove(group);
+            
+            _eventManager.Trigger(Events.OnWidgetUpdated, widget);
+            
             return Json(true);
         }
         [HttpPost]
         public JsonResult Sort(List<SectionGroup> groups)
         {
+            var firstGroup = _sectionGroupService.Get(groups.First().ID);
+            var widget = _widgetBasePartService.Get(firstGroup.SectionWidgetId);
+            _eventManager.Trigger(Events.OnWidgetUpdating, widget);
+            
             groups.Each(m =>
             {
                 var g = _sectionGroupService.Get(m.ID);
                 g.Order = m.Order;
                 _sectionGroupService.Update(g);
             });
+            
+            _eventManager.Trigger(Events.OnWidgetUpdated, widget);
+            
             return Json(true);
         }
 
         [HttpPost]
         public JsonResult SortContent(List<SectionContent> contents)
         {
+            var firstContent = _sectionContentProviderService.Get(contents.First().ID);
+            var widget = _widgetBasePartService.Get(firstContent.SectionWidgetId);
+            _eventManager.Trigger(Events.OnWidgetUpdating, widget);
+            
             contents.Each(m =>
             {
                 _sectionContentProviderService.SaveSort(m);
             });
+            
+            _eventManager.Trigger(Events.OnWidgetUpdated, widget);
+            
             return Json(true);
         }
         [HttpPost]
@@ -132,6 +169,14 @@ namespace ZKEACMS.SectionWidget.Controllers
         {
             if (groups != null)
             {
+                SectionGroup groupWithId = groups.FirstOrDefault(m => m.SectionWidgetId.IsNotNullAndWhiteSpace());
+                
+                if (groupWithId != null)
+                {
+                    var widget = _widgetBasePartService.Get(groupWithId.SectionWidgetId);
+                    _eventManager.Trigger(Events.OnWidgetUpdating, widget);
+                }
+                
                 groups.Each(g =>
                 {
                     if (g.ID.IsNotNullAndWhiteSpace())
@@ -148,6 +193,12 @@ namespace ZKEACMS.SectionWidget.Controllers
                         _sectionGroupService.Add(g);
                     }
                 });
+                
+                if (groupWithId != null && groupWithId.SectionWidgetId.IsNotNullAndWhiteSpace())
+                {
+                    var widget = _widgetBasePartService.Get(groupWithId.SectionWidgetId);
+                    _eventManager.Trigger(Events.OnWidgetUpdated, widget);
+                }
             }
             return Json(new { Groups = groups.Count });
         }

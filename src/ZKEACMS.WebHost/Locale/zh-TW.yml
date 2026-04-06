@@ -1088,6 +1088,7 @@ SectionGroup@Order: 排序
 SectionGroup@PartialView: 顯示模闆
 SectionGroup@PercentWidth: 柵格列
 SectionGroup@Title: 標題
+SectionGroup@SectionContents: 內容
 SectionWidget@ExtendFields: 擴展屬性
 SectionWidget@IsHorizontal: 水平分組
 SectionWidget@IsTemplate: 保存為模闆
@@ -1098,6 +1099,7 @@ SectionWidget@Position: 排序
 SectionWidget@SectionTitle: 標題
 SectionWidget@Thumbnail: 縮略圖
 SectionWidget@Title: 標題
+SectionWidget@Groups: 組
 Secure Payment: 安全支付
 Security: 安全
 Select: 選擇

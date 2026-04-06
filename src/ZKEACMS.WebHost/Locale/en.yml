@@ -647,6 +647,7 @@ SectionGroup@Order: Order
 SectionGroup@PartialView: Partial View
 SectionGroup@PercentWidth: Percent Width
 SectionGroup@Title: Title
+SectionGroup@SectionContents: Content
 SectionWidget@CreatebyName: Createby Name
 SectionWidget@ExtendFields: Extend Fields
 SectionWidget@IsHorizontal: Is Horizontal
@@ -659,6 +660,7 @@ SectionWidget@Position: Position
 SectionWidget@SectionTitle: Section Title
 SectionWidget@Thumbnail: Thumbnail
 SectionWidget@Title: Title
+SectionWidget@Groups: Group
 ShowCaseWidget@CaseItems: Case Items
 ShowCaseWidget@Header: Header
 ShowCaseWidget@MoreLink: More Link

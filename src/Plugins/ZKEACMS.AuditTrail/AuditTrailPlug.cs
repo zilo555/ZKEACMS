@@ -11,8 +11,11 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using ZKEACMS.AuditTrail.Event;
 using ZKEACMS.AuditTrail.Service;
 using ZKEACMS.Common.Service;
+using ZKEACMS.Event;
+using ZKEACMS.Widget;
 using ZKEACMS.WidgetTemplate;
 
 namespace ZKEACMS.AuditTrail
@@ -52,6 +55,11 @@ namespace ZKEACMS.AuditTrail
         public override void ConfigureServices(IServiceCollection serviceCollection)
         {
             serviceCollection.AddScoped<IAuditTrailService, AuditTrailService>();
+            serviceCollection.RegistEvent<WidgetAuditTrailEventHandler>(
+                Events.OnWidgetUpdating,
+                Events.OnWidgetUpdated,
+                Events.OnWidgetAdded,
+                Events.OnWidgetDeleted);
 
             serviceCollection.AddSingleton<IOnModelCreating, EntityFrameWorkModelCreating>();
         }
