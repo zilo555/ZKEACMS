@@ -2,8 +2,10 @@
  * Copyright (c) ZKEASOFT. All rights reserved. 
  * http://www.zkea.net/licenses */
 
+using Microsoft.AspNetCore.WebUtilities;
 using System;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -47,7 +49,7 @@ namespace Easy.Extend
         private static partial Regex RegexCopy();
         [GeneratedRegex("&#(\\d+);", RegexOptions.IgnoreCase)]
         private static partial Regex RegexNumber();
-        [GeneratedRegex("^([0-9a-zA-Z]+[-._+&])*[0-9a-zA-Z]+@([-0-9a-zA-Z]+[.])+[a-zA-Z]{2,6}$",  RegexOptions.Singleline | RegexOptions.CultureInvariant)]
+        [GeneratedRegex("^([0-9a-zA-Z]+[-._+&])*[0-9a-zA-Z]+@([-0-9a-zA-Z]+[.])+[a-zA-Z]{2,6}$", RegexOptions.Singleline | RegexOptions.CultureInvariant)]
         private static partial Regex RegexEmail();
         [GeneratedRegex("(http|https)://([\\w-]+\\.)+[\\w-]+(/[\\w- ./?%&=]*)?", RegexOptions.Singleline | RegexOptions.CultureInvariant)]
         private static partial Regex RegexUrl();
@@ -236,11 +238,19 @@ namespace Easy.Extend
         }
         public static string[] SplitWithDirectorySeparatorChar(this string path)
         {
-            return path.Split(new char[] { '/','\\' }, StringSplitOptions.RemoveEmptyEntries);
+            return path.Split(new char[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
         }
         public static string ToWebPath(this string path)
         {
             return string.Join('/', path.SplitWithDirectorySeparatorChar());
+        }
+        public static string ToShortHash(this string value)
+        {
+            if (string.IsNullOrEmpty(value)) return value;
+
+            var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));
+            
+            return WebEncoders.Base64UrlEncode(hashBytes).Substring(0, 8);
         }
     }
 }
