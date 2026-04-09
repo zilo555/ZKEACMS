@@ -45,33 +45,24 @@ namespace ZKEACMS.AuditTrail.Service
             if (id == null) return;
 
             var entityType = typeof(T);
-            if (ShouldIgnoreAudit(entityType)) return;
-
-            var record = CreateRecord(entityType, id, remark);
-
             var changes = new List<FieldChange>
             {
                 new FieldChange
                 {
                     Field = field,
-                    ChangeType= (int)AuditChangeType.Added,
+                    ChangeType = (int)AuditChangeType.Added,
                     NewValue = newValue
                 }
             };
 
-            record.Changes = JsonConverter.Serialize(changes);
-
-            Add(record);
+            SaveAuditRecord(entityType, id, changes, remark);
         }
+
         public void AuditCreate<TEntity>(TEntity entity, string remark = null) where TEntity : class
         {
             if (entity == null) return;
 
             var entityType = typeof(TEntity);
-            if (ShouldIgnoreAudit(entityType)) return;
-
-            var record = CreateRecord(entityType, entity, remark);
-
             var changes = new List<FieldChange>
             {
                 new FieldChange
@@ -81,9 +72,7 @@ namespace ZKEACMS.AuditTrail.Service
                 }
             };
 
-            record.Changes = JsonConverter.Serialize(changes);
-
-            Add(record);
+            SaveAuditRecord(entityType, entity, changes, remark);
         }
 
         public void AuditUpdate<TEntity>(TEntity oldEntity, TEntity newEntity, string remark = null) where TEntity : class
@@ -91,12 +80,91 @@ namespace ZKEACMS.AuditTrail.Service
             if (oldEntity == null || newEntity == null) return;
 
             var entityType = typeof(TEntity);
-            if (ShouldIgnoreAudit(entityType)) return;
+            var changes = EntityComparer.Compare(oldEntity, newEntity, GetAuditValueProviders());
+            if (!changes.Any()) return;
+
+            SaveAuditRecord(entityType, newEntity, changes, remark);
+        }
+
+        public void AuditUpdate(Type entityType, object oldEntity, object newEntity, string remark = null)
+        {
+            if (oldEntity == null || newEntity == null) return;
 
             var changes = EntityComparer.Compare(oldEntity, newEntity, GetAuditValueProviders());
-            if (!changes.Any()) return; // Don't record if no changes
+            if (!changes.Any()) return;
 
-            var record = CreateRecord(entityType, newEntity, remark);
+            SaveAuditRecord(entityType, newEntity, changes, remark);
+        }
+
+
+        public void AuditUpdate<T>(string id, string field, object oldValue, object newValue, string remark = null) where T : class
+        {
+            if (oldValue == null || newValue == null || oldValue == newValue) return;
+
+            var entityType = typeof(T);
+            var changes = EntityComparer.Compare(oldValue, newValue, GetAuditValueProviders());
+            if (!changes.Any()) return;
+
+            for (int i = 0; i < changes.Count; i++)
+            {
+                changes[i].Field = field;
+            }
+            SaveAuditRecord(entityType, id, changes, remark);
+        }
+
+        public void AuditDelete<TEntity>(TEntity entity, string remark = null) where TEntity : class
+        {
+            if (entity == null) return;
+
+            var entityType = typeof(TEntity);
+            var changes = new List<FieldChange>
+            {
+                new FieldChange
+                {
+                    ChangeType = (int)AuditChangeType.Deleted,
+                    OldValue = EntityComparer.GetKeyAndTitle<TEntity>(entity)
+                }
+            };
+
+            SaveAuditRecord(entityType, entity, changes, remark);
+        }
+
+        public void AuditDelete<T>(string id, string field, string oldValue, string remark = null) where T : class
+        {
+            if (id == null) return;
+
+            var entityType = typeof(T);
+            var changes = new List<FieldChange>
+            {
+                new FieldChange
+                {
+                    Field = field,
+                    ChangeType = (int)AuditChangeType.Deleted,
+                    OldValue = oldValue
+                }
+            };
+
+            SaveAuditRecord(entityType, id, changes, remark);
+        }
+
+        private void SaveAuditRecord(Type entityType, string entityId, List<FieldChange> changes, string remark)
+        {
+            if (ShouldIgnoreAudit(entityType)) return;
+
+            var record = CreateRecord(entityType, entityId, remark);
+            for (int i = 0; i < changes.Count; i++)
+            {
+                changes[i].Sequence = i;
+            }
+            record.Changes = JsonConverter.Serialize(changes);
+            Add(record);
+        }
+
+        private void SaveAuditRecord<TEntity>(Type entityType, TEntity entity, List<FieldChange> changes, string remark) where TEntity : class
+        {
+            if (ShouldIgnoreAudit(entityType)) return;
+
+            var record = CreateRecord(entityType, entity, remark);
             for (int i = 0; i < changes.Count; i++)
             {
                 changes[i].Sequence = i;
@@ -112,88 +180,6 @@ namespace ZKEACMS.AuditTrail.Service
                 .ToList();
         }
 
-        public void AuditUpdate(Type entityType, object oldEntity, object newEntity, string remark = null)
-        {
-            if (oldEntity == null || newEntity == null) return;
-
-            if (ShouldIgnoreAudit(entityType)) return;
-
-            var changes = EntityComparer.Compare(oldEntity, newEntity, GetAuditValueProviders());
-            if (!changes.Any()) return; // Don't record if no changes
-
-            var record = CreateRecord(entityType, newEntity, remark);
-            for (int i = 0; i < changes.Count; i++)
-            {
-                changes[i].Sequence = i;
-            }
-            record.Changes = JsonConverter.Serialize(changes);
-            Add(record);
-        }
-
-
-        public void AuditUpdate<T>(string id, string field, object oldValue, object newValue, string remark = null) where T : class
-        {
-            if (oldValue == null || newValue == null || oldValue == newValue) return;
-            var entityType = typeof(T);
-            if(ShouldIgnoreAudit(entityType)) return;
-
-            var changes = EntityComparer.Compare(oldValue, newValue, GetAuditValueProviders());
-            if (!changes.Any()) return; // Don't record if no changes
-
-            var record = CreateRecord(entityType, id, remark);
-            for (int i = 0; i < changes.Count; i++)
-            {
-                changes[i].Field = field;
-                changes[i].Sequence = i;
-            }
-            record.Changes = JsonConverter.Serialize(changes);
-            Add(record);
-        }
-
-        public void AuditDelete<TEntity>(TEntity entity, string remark = null) where TEntity : class
-        {
-            if (entity == null) return;
-
-            var entityType = typeof(TEntity);
-            if (ShouldIgnoreAudit(entityType)) return;
-
-            var record = CreateRecord(entityType, entity, remark);
-
-            var changes = new List<FieldChange>
-            {
-                new FieldChange
-                {
-                    ChangeType = (int)AuditChangeType.Deleted,
-                    OldValue = EntityComparer.GetKeyAndTitle<TEntity>(entity)
-                }
-            };
-
-            record.Changes = JsonConverter.Serialize(changes);
-            Add(record);
-        }
-        public void AuditDelete<T>(string id, string field, string oldValue, string remark = null) where T : class
-        {
-            if (id == null) return;
-
-            var entityType = typeof(T);
-            if (ShouldIgnoreAudit(entityType)) return;
-
-            var record = CreateRecord(entityType, id, remark);
-
-            var changes = new List<FieldChange>
-            {
-                new FieldChange
-                {
-                    Field = field,
-                    ChangeType = (int)AuditChangeType.Deleted,
-                    OldValue = oldValue
-                }
-            };
-
-            record.Changes = JsonConverter.Serialize(changes);
-
-            Add(record);
-        }
         #endregion
 
         #region Query audit records
@@ -208,6 +194,7 @@ namespace ZKEACMS.AuditTrail.Service
         {
             return entityType.GetCustomAttribute<AuditIgnoreAttribute>() != null;
         }
+
         private string GetEntityID<TEntity>(TEntity entity)
         {
             if (entity == null) return null;
@@ -225,25 +212,9 @@ namespace ZKEACMS.AuditTrail.Service
             return keyValue.ToString();
         }
 
-        private AuditTrailRecord CreateRecord<TEntity>(Type entityType, TEntity entity, string remark)
-        {
-            var currentUser = _applicationContext.CurrentUser;
-            var httpContext = _httpContextAccessor.HttpContext;
-
-
-            return new AuditTrailRecord
-            {
-                EntityType = WebEncoders.Base64UrlEncode(entityType.FullName.ToByte()),
-                EntityID = GetEntityID(entity),
-                IPAddress = httpContext?.Connection?.RemoteIpAddress?.ToString(),
-                Description = remark
-            };
-        }
         private AuditTrailRecord CreateRecord(Type entityType, string entityId, string remark)
         {
-            var currentUser = _applicationContext.CurrentUser;
             var httpContext = _httpContextAccessor.HttpContext;
-
 
             return new AuditTrailRecord
             {
@@ -252,6 +223,11 @@ namespace ZKEACMS.AuditTrail.Service
                 IPAddress = httpContext?.Connection?.RemoteIpAddress?.ToString(),
                 Description = remark
             };
+        }
+
+        private AuditTrailRecord CreateRecord<TEntity>(Type entityType, TEntity entity, string remark)
+        {
+            return CreateRecord(entityType, GetEntityID(entity), remark);
         }
 
         #endregion
