@@ -1,8 +1,8 @@
 CREATE TABLE [AuditTrail] (
   [ID] INTEGER NOT NULL
 , [EntityType] nvarchar(100) NOT NULL
-, [EntityID] nchar(50) NOT NULL
-, [IPAddress] nchar(10) NULL
+, [EntityID] nvarchar(100) NOT NULL
+, [IPAddress] nvarchar(10) NULL
 , [Changes] ntext NULL
 , [Title] nvarchar(200) NULL
 , [Description] nvarchar(500) NULL
