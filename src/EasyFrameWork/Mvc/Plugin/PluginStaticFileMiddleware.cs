@@ -72,74 +72,13 @@ namespace Easy.Mvc.Plugin
             if (plugin == null) return null;
 
             var resourceName = filePath.Substring($"/{_pluginLoader.GetPluginFolderName()}/".Length);
-            resourceName = FormatResourcePath(resourceName);
+            resourceName = PluginInfo.FormatResourcePath(resourceName);
 
             if (!plugin.EmbeddedResource.TryGetValue(resourceName, out string actualResourceName)) return null;
 
             return plugin.Assembly.GetManifestResourceStream(actualResourceName);
         }
 
-        public static string FormatResourcePath(string filePath)
-        {
-            if (string.IsNullOrWhiteSpace(filePath)) return string.Empty;
-
-            int start = 0;
-            int end = filePath.Length - 1;
-            while (start <= end && (filePath[start] == '/' || filePath[start] == '\\')) start++;
-            while (end >= start && (filePath[end] == '/' || filePath[end] == '\\')) end--;
-
-            if (start > end) return string.Empty;
-
-            int length = end - start + 1;
-
-            int lastSeparator = -1;
-            for (int i = end; i >= start; i--)
-            {
-                if (filePath[i] == '/' || filePath[i] == '\\')
-                {
-                    lastSeparator = i;
-                    break;
-                }
-            }
-
-            if (lastSeparator == -1)
-            {
-                return filePath.AsSpan(start, length).ToString();
-            }
-
-            return string.Create(length, (filePath, start, lastSeparator), (span, state) =>
-            {
-                string source = state.filePath;
-                int offset = state.start;
-                int sepIndex = state.lastSeparator;
-
-                for (int i = 0; i < span.Length; i++)
-                {
-                    int originalIndex = offset + i; 
-                    char c = source[originalIndex];
-
-                    if (originalIndex <= sepIndex)
-                    {
-                        if (c == '/' || c == '\\')
-                        {
-                            span[i] = '.';
-                        }
-                        else if (c == '-')
-                        {
-                            span[i] = '_';
-                        }
-                        else
-                        {
-                            span[i] = c;
-                        }
-                    }
-                    else
-                    {
-                        span[i] = c;
-                    }
-                }
-            });
-        }
         private static async Task CopyToResponseStream(HttpContext context, Stream resourceStream)
         {
             using (resourceStream)

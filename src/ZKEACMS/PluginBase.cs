@@ -257,10 +257,8 @@ namespace ZKEACMS
 
             using (var stream = Assembly.GetManifestResourceStream(matchResourceName))
             {
-                if (stream == null)
-                {
-                    return string.Empty;
-                }
+                if (stream == null) return null;
+
                 using (var reader = new StreamReader(stream))
                 {
                     return reader.ReadToEnd();
@@ -272,10 +270,14 @@ namespace ZKEACMS
             var matchResourceName = MapToResourceName(resourceName);
             return Assembly.GetManifestResourceStream(matchResourceName);
         }
+        public string[] GetResourceNames()
+        {
+            return Assembly.GetManifestResourceNames();
+        }
 
         private string MapToResourceName(string resourceName)
         {
-            return resourceName.Replace("~/", Assembly.GetName().Name + ".").Replace('/', '.');
+            return PluginInfo.FormatResourcePath(resourceName.Replace("~/", Assembly.GetName().Name + "."));
         }
 
         #region Viewfeature
