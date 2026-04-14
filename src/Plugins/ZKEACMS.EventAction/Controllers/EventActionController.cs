@@ -35,7 +35,7 @@ namespace ZKEACMS.EventAction.Controllers
         {
             return View(new Models.EventAction
             {
-                Actions = HttpContext.RequestServices.GetService<EventActionPlug>().ReadResourceText("~/example.yml")
+                Actions = HttpContext.RequestServices.GetService<EventActionPlug>().ReadTextResource("~/example.yml")
             });
         }
 

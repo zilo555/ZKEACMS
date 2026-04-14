@@ -251,7 +251,7 @@ namespace ZKEACMS
                 yield return item.Location;
             }
         }
-        public string ReadResourceText(string resourceName)
+        public string ReadTextResource(string resourceName)
         {
             string matchResourceName = MapToResourceName(resourceName);
 
