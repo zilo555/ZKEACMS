@@ -35,7 +35,11 @@ public override ErrorOr<ArticleEntity> Update(ArticleEntity item)
 {
     ...
     var oldItem = GetByID(item.ID);
-    _auditTrailService.AuditUpdate(oldItem, item);
+    var result = base.Update(item);
+    if (result.IsSuccess)
+    {
+        _auditTrailService.AuditUpdate(oldItem, item);
+    }    
     ...
 }
 ```
