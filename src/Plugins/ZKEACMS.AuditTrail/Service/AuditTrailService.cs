@@ -173,9 +173,9 @@ namespace ZKEACMS.AuditTrail.Service
             Add(record);
         }
 
-        private List<IAuditValueProvider> GetAuditValueProviders()
+        private List<IAuditPropertyProvider> GetAuditValueProviders()
         {
-            return _applicationContext.ServiceProvider.GetServices<IAuditValueProvider>()
+            return _applicationContext.ServiceProvider.GetServices<IAuditPropertyProvider>()
                 .OrderByDescending(m => m.Priority)
                 .ToList();
         }
