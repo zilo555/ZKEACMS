@@ -3,12 +3,13 @@
  * http://www.zkea.net/licenses */
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace Easy.AuditTrail
 {
-    public interface IAuditValueProvider : IAuditPropertyProvider
+    public interface IAuditFieldValueProvider : IAuditPropertyProvider
     {
-        string GetDisplayValue(PropertyInfo property, object rawValue);
+        IEnumerable<AuditField> GetFields(PropertyInfo property, object rawValue);
     }
 }

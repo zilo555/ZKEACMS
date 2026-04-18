@@ -38,10 +38,5 @@ namespace ZKEACMS.Common.Service
             var local = _localize.GetOrNull(key, _culture.Code);
             return local ?? _localize.Get(property.Name);
         }
-
-        public string GetDisplayValue(PropertyInfo property, object rawValue)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

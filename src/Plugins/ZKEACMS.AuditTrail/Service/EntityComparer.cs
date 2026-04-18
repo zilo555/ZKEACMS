@@ -27,7 +27,7 @@ namespace ZKEACMS.AuditTrail.Service
         /// </summary>
         public static List<FieldChange> Compare<TEntity>(TEntity oldEntity,
             TEntity newEntity,
-            IEnumerable<IAuditValueProvider> valueProviders = null)
+            IEnumerable<IAuditPropertyProvider> valueProviders = null)
             where TEntity : class
         {
             var changes = new List<FieldChange>();
@@ -55,7 +55,7 @@ namespace ZKEACMS.AuditTrail.Service
         private static void CompareRecursive(object oldObj, object newObj,
             string prefix,
             List<FieldChange> changes,
-            IEnumerable<IAuditValueProvider> valueProviders,
+            IEnumerable<IAuditPropertyProvider> valueProviders,
             PropertyInfo currentPropertyInfo)
         {
             if (oldObj == null && newObj == null)
@@ -104,9 +104,146 @@ namespace ZKEACMS.AuditTrail.Service
                 var oldValue = property.GetValue(oldObj);
                 var newValue = property.GetValue(newObj);
 
+                if (TryCompareCustomFieldProperty(property, oldValue, newValue, propPrefix, changes, valueProviders))
+                {
+                    continue;
+                }
+
                 // Pass the property info for the current property being compared
                 CompareRecursive(oldValue, newValue, propPrefix, changes, valueProviders, property);
             }
+        }
+
+        private static bool TryCompareCustomFieldProperty(PropertyInfo property,
+            object oldValue,
+            object newValue,
+            string fieldPrefix,
+            List<FieldChange> changes,
+            IEnumerable<IAuditPropertyProvider> valueProviders)
+        {
+            if (valueProviders == null)
+            {
+                return false;
+            }
+
+            var customFieldProviders = valueProviders.OfType<IAuditFieldValueProvider>();
+            foreach (var fieldProvider in customFieldProviders)
+            {
+                if (!fieldProvider.CanHandle(property, property.DeclaringType))
+                {
+                    continue;
+                }
+
+                var oldFields = (fieldProvider.GetFields(property, oldValue) ?? Enumerable.Empty<AuditField>())
+                    .OrderBy(m => m.Order)
+                    .ToDictionary(m => m.FieldName ?? string.Empty, m => m);
+                var newFields = (fieldProvider.GetFields(property, newValue) ?? Enumerable.Empty<AuditField>())
+                    .OrderBy(m => m.Order)
+                    .ToDictionary(m => m.FieldName ?? string.Empty, m => m);
+
+                var allKeys = oldFields.Keys.Union(newFields.Keys).ToList();
+                foreach (var key in allKeys)
+                {
+                    oldFields.TryGetValue(key, out var oldField);
+                    newFields.TryGetValue(key, out var newField);
+
+                    var oldFieldValue = oldField?.Value;
+                    var newFieldValue = newField?.Value;
+                    var displayName = newField?.DisplayName ?? oldField?.DisplayName ?? key;
+                    var fieldName = string.IsNullOrEmpty(fieldPrefix) ? displayName : $"{fieldPrefix}.{displayName}";
+
+                    if (TryCompareFlattenedCollection(fieldName, oldFieldValue, newFieldValue, changes, property, valueProviders))
+                    {
+                        continue;
+                    }
+
+                    if (AreEqual(oldFieldValue, newFieldValue))
+                    {
+                        continue;
+                    }
+
+                    changes.Add(new FieldChange
+                    {
+                        Field = fieldName,
+                        OldValue = SerializeValue(oldFieldValue, property, valueProviders),
+                        NewValue = SerializeValue(newFieldValue, property, valueProviders)
+                    });
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TryCompareFlattenedCollection(string fieldName,
+            object oldValue,
+            object newValue,
+            List<FieldChange> changes,
+            PropertyInfo property,
+            IEnumerable<IAuditPropertyProvider> valueProviders)
+        {
+            if (!IsFlattenedEnumerable(oldValue) && !IsFlattenedEnumerable(newValue))
+            {
+                return false;
+            }
+
+            var oldEnumerable = oldValue as IEnumerable;
+            var newEnumerable = newValue as IEnumerable;
+
+            if (oldEnumerable == null && newEnumerable == null)
+            {
+                return false;
+            }
+
+            if (oldEnumerable == null)
+            {
+                oldEnumerable = Array.Empty<object>();
+            }
+
+            if (newEnumerable == null)
+            {
+                newEnumerable = Array.Empty<object>();
+            }
+
+            var oldItems = oldEnumerable.Cast<object>().Where(item => item != null).ToList();
+            var newItems = newEnumerable.Cast<object>().Where(item => item != null).ToList();
+
+            if (oldItems.Count == 0 && newItems.Count == 0)
+                return true;
+
+            var addedItems = newItems.Except(oldItems).ToList();
+            var deletedItems = oldItems.Except(newItems).ToList();
+
+            if (addedItems.Any())
+            {
+                changes.Add(new FieldChange
+                {
+                    Field = fieldName,
+                    ChangeType = (int)AuditChangeType.Added,
+                    NewValue = SerializeValue(addedItems, property, valueProviders)
+                });
+            }
+            if (deletedItems.Any())
+            {
+                changes.Add(new FieldChange
+                {
+                    Field = fieldName,
+                    ChangeType = (int)AuditChangeType.Deleted,
+                    OldValue = SerializeValue(deletedItems, property, valueProviders)
+                });
+            }
+            return true;
+        }
+
+        private static List<object> GetCollectionValues(IEnumerable<object> items)
+        {
+            return items?.Where(item => item != null).ToList() ?? new List<object>();
+        }
+
+        private static bool IsFlattenedEnumerable(object value)
+        {
+            return value is IEnumerable && value is not string;
         }
 
         /// <summary>
@@ -125,7 +262,7 @@ namespace ZKEACMS.AuditTrail.Service
             object newObj,
             string fieldName,
             List<FieldChange> changes,
-            IEnumerable<IAuditValueProvider> valueProviders,
+            IEnumerable<IAuditPropertyProvider> valueProviders,
             PropertyInfo currentPropertyInfo)
         {
             var oldList = oldObj as IEnumerable;
@@ -238,7 +375,7 @@ namespace ZKEACMS.AuditTrail.Service
             List<FieldChange> changes,
             List<object> oldItems,
             List<object> newItems,
-            IEnumerable<IAuditValueProvider> valueProviders,
+            IEnumerable<IAuditPropertyProvider> valueProviders,
             PropertyInfo currentPropertyInfo)
         {
             // Handle simple types: compare which values were added or removed
@@ -273,7 +410,7 @@ namespace ZKEACMS.AuditTrail.Service
         /// <summary>
         /// Compare dictionary types
         /// </summary>
-        private static void CompareDictionary(object oldObj, object newObj, string fieldName, List<FieldChange> changes, IEnumerable<IAuditValueProvider> valueProviders, PropertyInfo currentPropertyInfo)
+        private static void CompareDictionary(object oldObj, object newObj, string fieldName, List<FieldChange> changes, IEnumerable<IAuditPropertyProvider> valueProviders, PropertyInfo currentPropertyInfo)
         {
             var oldDict = oldObj as IDictionary;
             var newDict = newObj as IDictionary;
@@ -342,7 +479,7 @@ namespace ZKEACMS.AuditTrail.Service
         /// <summary>
         /// Get the display name for a property
         /// </summary>
-        private static string GetDisplayPropertyName(PropertyInfo property, IEnumerable<IAuditValueProvider> valueProviders)
+        private static string GetDisplayPropertyName(PropertyInfo property, IEnumerable<IAuditPropertyProvider> valueProviders)
         {
             if (valueProviders == null)
             {
@@ -375,7 +512,7 @@ namespace ZKEACMS.AuditTrail.Service
         /// <summary>
         /// Get combined key and title information for composite keys/titles
         /// </summary>
-        private static string GetKeyAndTitle(PropertyInfo[] keyProperties, PropertyInfo[] titleProperties, object item, IEnumerable<IAuditValueProvider> valueProviders = null)
+        private static string GetKeyAndTitle(PropertyInfo[] keyProperties, PropertyInfo[] titleProperties, object item, IEnumerable<IAuditPropertyProvider> valueProviders = null)
         {
             var keyValue = GetCombinedKeyValue(keyProperties, item, valueProviders);
             var titleValue = GetCombinedTitleValue(titleProperties, item, valueProviders);
@@ -391,7 +528,7 @@ namespace ZKEACMS.AuditTrail.Service
         /// <summary>
         /// Get key and title for an item using its runtime type
         /// </summary>
-        private static string GetItemKeyAndTitle(object item, IEnumerable<IAuditValueProvider> valueProviders = null)
+        private static string GetItemKeyAndTitle(object item, IEnumerable<IAuditPropertyProvider> valueProviders = null)
         {
             var type = item.GetType();
             var keyProperties = GetKeyProperties(type);
@@ -402,7 +539,7 @@ namespace ZKEACMS.AuditTrail.Service
         /// <summary>
         /// Gets the combined value of all key properties sorted by Order
         /// </summary>
-        private static string GetCombinedKeyValue(PropertyInfo[] keyProperties, object item, IEnumerable<IAuditValueProvider> valueProviders = null)
+        private static string GetCombinedKeyValue(PropertyInfo[] keyProperties, object item, IEnumerable<IAuditPropertyProvider> valueProviders = null)
         {
             if (keyProperties == null || !keyProperties.Any())
             {
@@ -436,7 +573,7 @@ namespace ZKEACMS.AuditTrail.Service
         /// <summary>
         /// Get key for an item using its runtime type, includes type information to distinguish different derived types
         /// </summary>
-        private static string GetItemKey(object item, IEnumerable<IAuditValueProvider> valueProviders = null)
+        private static string GetItemKey(object item, IEnumerable<IAuditPropertyProvider> valueProviders = null)
         {
             var type = item.GetType();
             var keyProperties = GetKeyProperties(type);
@@ -447,7 +584,7 @@ namespace ZKEACMS.AuditTrail.Service
         /// <summary>
         /// Gets the combined value of all title properties sorted by Order
         /// </summary>
-        private static string GetCombinedTitleValue(PropertyInfo[] titleProperties, object item, IEnumerable<IAuditValueProvider> valueProviders = null)
+        private static string GetCombinedTitleValue(PropertyInfo[] titleProperties, object item, IEnumerable<IAuditPropertyProvider> valueProviders = null)
         {
             if (titleProperties == null || !titleProperties.Any())
             {
@@ -561,13 +698,13 @@ namespace ZKEACMS.AuditTrail.Service
         /// <summary>
         /// Serialize value to string with property and value providers
         /// </summary>
-        private static string SerializeValue(object value, PropertyInfo propertyInfo = null, IEnumerable<IAuditValueProvider> valueProviders = null)
+        private static string SerializeValue(object value, PropertyInfo propertyInfo = null, IEnumerable<IAuditPropertyProvider> valueProviders = null)
         {
             if (value == null) return null;
 
             if (propertyInfo != null && valueProviders != null)
             {
-                foreach (var provider in valueProviders.Where(m => m is not IAuditDisplayProvider))
+                foreach (var provider in valueProviders.OfType<IAuditValueProvider>())
                 {
                     if (!provider.CanHandle(propertyInfo, propertyInfo.DeclaringType)) continue;
 

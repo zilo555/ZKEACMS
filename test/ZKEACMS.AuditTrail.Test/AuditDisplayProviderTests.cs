@@ -51,7 +51,7 @@ namespace ZKEACMS.AuditTrail.Test
             var oldValue = new TestEntityWithTitle { Id = 1, Title = "Old Title", Content = "Old Content" };
             var newValue = new TestEntityWithTitle { Id = 1, Title = "New Title", Content = "New Content" };
             
-            var valueProviders = new List<IAuditValueProvider> { new TitleDisplayProvider() };
+            var valueProviders = new List<IAuditPropertyProvider> { new TitleDisplayProvider() };
 
             // Act
             var changes = EntityComparer.Compare(oldValue, newValue, valueProviders);

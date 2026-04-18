@@ -107,5 +107,6 @@ namespace ZKEACMS.AuditTrail.Test
             // Verify that Status did not change (since we changed Name only)
             Assert.IsFalse(changes.Exists(c => c.Field.Contains(nameof(TestEntityWithStatus.Status))));
         }
+
     }
 }

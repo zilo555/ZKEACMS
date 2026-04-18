@@ -113,7 +113,7 @@ namespace ZKEACMS.AuditTrail.Test
                 Data = new NestedEntity { Title = "New Title", Description = "Description" }
             };
 
-            var valueProviders = new List<IAuditValueProvider> { new NestedEntityDisplayProvider() };
+            var valueProviders = new List<IAuditPropertyProvider> { new NestedEntityDisplayProvider() };
 
             // Act
             var changes = EntityComparer.Compare(oldValue, newValue, valueProviders);
@@ -197,7 +197,7 @@ namespace ZKEACMS.AuditTrail.Test
                 Properties = new Dictionary<string, string> { { "prop1", "newValue1" }, { "prop2", "newValue2" } } // Changed value and added new entry
             };
 
-            var valueProviders = new List<IAuditValueProvider> { new NestedEntityDisplayProvider() };
+            var valueProviders = new List<IAuditPropertyProvider> { new NestedEntityDisplayProvider() };
 
             // Act
             var changes = EntityComparer.Compare(oldValue, newValue, valueProviders);
@@ -352,7 +352,7 @@ namespace ZKEACMS.AuditTrail.Test
                 }
             };
 
-            var valueProviders = new List<IAuditValueProvider> { new ComplexDictionaryDisplayProvider() };
+            var valueProviders = new List<IAuditPropertyProvider> { new ComplexDictionaryDisplayProvider() };
 
             // Act
             var changes = EntityComparer.Compare(oldValue, newValue, valueProviders);

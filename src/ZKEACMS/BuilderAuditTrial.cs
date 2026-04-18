@@ -31,9 +31,9 @@ namespace ZKEACMS
             services.AddAuditValueProvider<RoleAuditValueProvider>();
         }
         public static void AddAuditValueProvider<TAuditValueProvider>(this IServiceCollection services)
-            where TAuditValueProvider : class, IAuditValueProvider
+            where TAuditValueProvider : class, IAuditPropertyProvider
         {
-            services.AddScoped<IAuditValueProvider, TAuditValueProvider>();
+            services.AddScoped<IAuditPropertyProvider, TAuditValueProvider>();
         }
     }
 }

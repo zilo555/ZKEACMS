@@ -7,8 +7,9 @@ using System.Reflection;
 
 namespace Easy.AuditTrail
 {
-    public interface IAuditValueProvider : IAuditPropertyProvider
+    public interface IAuditPropertyProvider
     {
-        string GetDisplayValue(PropertyInfo property, object rawValue);
+        int Priority { get; }
+        bool CanHandle(PropertyInfo property, Type entityType);
     }
 }
