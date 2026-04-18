@@ -2,8 +2,10 @@
  * Copyright (c) ZKEASOFT. All rights reserved. 
  * http://www.zkea.net/licenses */
 
+using Dm.util;
 using Easy.AuditTrail;
 using Easy.AuditTrail.Attributes;
+using Easy.Extend;
 using Easy.Serializer;
 using System;
 using System.Collections;
@@ -104,7 +106,7 @@ namespace ZKEACMS.AuditTrail.Service
                 var oldValue = property.GetValue(oldObj);
                 var newValue = property.GetValue(newObj);
 
-                if (TryCompareCustomFieldProperty(property, oldValue, newValue, propPrefix, changes, valueProviders))
+                if (TryCompareCustomFieldProperty(property, oldValue, newValue, prefix, changes, valueProviders))
                 {
                     continue;
                 }

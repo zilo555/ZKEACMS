@@ -39,6 +39,49 @@ namespace ZKEACMS.AuditTrail.Test
             public List<CustomFieldArrayItem> CustomFields { get; set; }
         }
 
+        class InnerEntity
+        {
+            public List<CustomFieldItem> CustomFields { get; set; }
+        }
+
+        class EntityWithNestedCustomFields
+        {
+            public int Id { get; set; }
+            public InnerEntity Inner { get; set; }
+        }
+
+        class NestedCustomFieldProvider : IAuditFieldValueProvider
+        {
+            public int Priority => 10;
+
+            public bool CanHandle(PropertyInfo property, System.Type entityType)
+            {
+                return entityType == typeof(InnerEntity) && property.Name == nameof(InnerEntity.CustomFields);
+            }
+
+            public string GetDisplayValue(PropertyInfo property, object rawValue)
+            {
+                return rawValue?.ToString();
+            }
+
+            public IEnumerable<AuditField> GetFields(PropertyInfo property, object rawValue)
+            {
+                var list = rawValue as IEnumerable<CustomFieldItem>;
+                if (list == null)
+                {
+                    return Enumerable.Empty<AuditField>();
+                }
+
+                return list.Select((item, index) => new AuditField
+                {
+                    FieldName = item.Key ?? index.ToString(),
+                    DisplayName = item.Label ?? item.Key ?? index.ToString(),
+                    Value = item.Value,
+                    Order = index
+                });
+            }
+        }
+
         class CustomFieldProvider : IAuditFieldValueProvider
         {
             public int Priority => 10;
@@ -130,19 +173,19 @@ namespace ZKEACMS.AuditTrail.Test
 
             var changes = EntityComparer.Compare(oldValue, newValue, valueProviders);
 
-            Assert.IsTrue(changes.Any(c => c.Field == "CustomFields.Color"));
-            Assert.IsTrue(changes.Any(c => c.Field == "CustomFields.Size"));
-            Assert.IsTrue(changes.Any(c => c.Field == "CustomFields.Material"));
+            Assert.IsTrue(changes.Any(c => c.Field == "Color"));
+            Assert.IsTrue(changes.Any(c => c.Field == "Size"));
+            Assert.IsTrue(changes.Any(c => c.Field == "Material"));
 
-            var colorChange = changes.First(c => c.Field == "CustomFields.Color");
+            var colorChange = changes.First(c => c.Field == "Color");
             Assert.AreEqual("Blue", colorChange.NewValue);
             Assert.AreEqual("Blue", colorChange.NewValue);
 
-            var sizeChange = changes.First(c => c.Field == "CustomFields.Size");
+            var sizeChange = changes.First(c => c.Field == "Size");
             Assert.AreEqual("M", sizeChange.OldValue);
             Assert.IsNull(sizeChange.NewValue);
 
-            var materialChange = changes.First(c => c.Field == "CustomFields.Material");
+            var materialChange = changes.First(c => c.Field == "Material");
             Assert.IsNull(materialChange.OldValue);
             Assert.AreEqual("Cotton", materialChange.NewValue);
         }
@@ -172,15 +215,65 @@ namespace ZKEACMS.AuditTrail.Test
 
             var changes = EntityComparer.Compare(oldValue, newValue, valueProviders);
 
-            Assert.IsTrue(changes.Any(c => c.Field == "CustomFields.Tags"));
-            Assert.IsTrue(changes.Any(c => c.Field == "CustomFields.Tags" && c.ChangeType == (int)AuditChangeType.Added));
-            Assert.IsTrue(changes.Any(c => c.Field == "CustomFields.Tags" && c.ChangeType == (int)AuditChangeType.Deleted));
+            Assert.IsTrue(changes.Any(c => c.Field == "Tags"));
+            Assert.IsTrue(changes.Any(c => c.Field == "Tags" && c.ChangeType == (int)AuditChangeType.Added));
+            Assert.IsTrue(changes.Any(c => c.Field == "Tags" && c.ChangeType == (int)AuditChangeType.Deleted));
 
-            var addedChange = changes.First(c => c.Field == "CustomFields.Tags" && c.ChangeType == (int)AuditChangeType.Added);
-            var deletedChange = changes.First(c => c.Field == "CustomFields.Tags" && c.ChangeType == (int)AuditChangeType.Deleted);
+            var addedChange = changes.First(c => c.Field == "Tags" && c.ChangeType == (int)AuditChangeType.Added);
+            var deletedChange = changes.First(c => c.Field == "Tags" && c.ChangeType == (int)AuditChangeType.Deleted);
 
             Assert.Contains("C", addedChange.NewValue);
             Assert.Contains("A", deletedChange.OldValue);
+        }
+
+        [TestMethod]
+        public void Compare_WithNestedCustomFields_ShouldCompareNestedCustomFieldFields()
+        {
+            var oldValue = new EntityWithNestedCustomFields
+            {
+                Id = 1,
+                Inner = new InnerEntity
+                {
+                    CustomFields = new List<CustomFieldItem>
+                    {
+                        new CustomFieldItem { Key = "Color", Label = "Color", Value = "Red" },
+                        new CustomFieldItem { Key = "Size", Label = "Size", Value = "M" }
+                    }
+                }
+            };
+
+            var newValue = new EntityWithNestedCustomFields
+            {
+                Id = 1,
+                Inner = new InnerEntity
+                {
+                    CustomFields = new List<CustomFieldItem>
+                    {
+                        new CustomFieldItem { Key = "Color", Label = "Color", Value = "Blue" },
+                        new CustomFieldItem { Key = "Material", Label = "Material", Value = "Cotton" }
+                    }
+                }
+            };
+
+            var valueProviders = new List<IAuditPropertyProvider> { new NestedCustomFieldProvider() };
+
+            var changes = EntityComparer.Compare(oldValue, newValue, valueProviders);
+
+            Assert.IsTrue(changes.Any(c => c.Field == "Inner.Color"));
+            Assert.IsTrue(changes.Any(c => c.Field == "Inner.Size"));
+            Assert.IsTrue(changes.Any(c => c.Field == "Inner.Material"));
+
+            var colorChange = changes.First(c => c.Field == "Inner.Color");
+            Assert.AreEqual("Blue", colorChange.NewValue);
+            Assert.AreEqual("Red", colorChange.OldValue);
+
+            var sizeChange = changes.First(c => c.Field == "Inner.Size");
+            Assert.AreEqual("M", sizeChange.OldValue);
+            Assert.IsNull(sizeChange.NewValue);
+
+            var materialChange = changes.First(c => c.Field == "Inner.Material");
+            Assert.IsNull(materialChange.OldValue);
+            Assert.AreEqual("Cotton", materialChange.NewValue);
         }
     }
 }
