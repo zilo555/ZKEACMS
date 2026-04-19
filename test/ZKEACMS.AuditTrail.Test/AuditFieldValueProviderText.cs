@@ -173,19 +173,19 @@ namespace ZKEACMS.AuditTrail.Test
 
             var changes = EntityComparer.Compare(oldValue, newValue, valueProviders);
 
-            Assert.IsTrue(changes.Any(c => c.Field == "Color"));
-            Assert.IsTrue(changes.Any(c => c.Field == "Size"));
-            Assert.IsTrue(changes.Any(c => c.Field == "Material"));
+            Assert.IsTrue(changes.Any(c => c.FieldDisplayName == "Color"));
+            Assert.IsTrue(changes.Any(c => c.FieldDisplayName == "Size"));
+            Assert.IsTrue(changes.Any(c => c.FieldDisplayName == "Material"));
 
-            var colorChange = changes.First(c => c.Field == "Color");
+            var colorChange = changes.First(c => c.FieldDisplayName == "Color");
             Assert.AreEqual("Blue", colorChange.NewValue);
             Assert.AreEqual("Blue", colorChange.NewValue);
 
-            var sizeChange = changes.First(c => c.Field == "Size");
+            var sizeChange = changes.First(c => c.FieldDisplayName == "Size");
             Assert.AreEqual("M", sizeChange.OldValue);
             Assert.IsNull(sizeChange.NewValue);
 
-            var materialChange = changes.First(c => c.Field == "Material");
+            var materialChange = changes.First(c => c.FieldDisplayName == "Material");
             Assert.IsNull(materialChange.OldValue);
             Assert.AreEqual("Cotton", materialChange.NewValue);
         }
@@ -215,12 +215,12 @@ namespace ZKEACMS.AuditTrail.Test
 
             var changes = EntityComparer.Compare(oldValue, newValue, valueProviders);
 
-            Assert.IsTrue(changes.Any(c => c.Field == "Tags"));
-            Assert.IsTrue(changes.Any(c => c.Field == "Tags" && c.ChangeType == (int)AuditChangeType.Added));
-            Assert.IsTrue(changes.Any(c => c.Field == "Tags" && c.ChangeType == (int)AuditChangeType.Deleted));
+            Assert.IsTrue(changes.Any(c => c.FieldDisplayName == "Tags"));
+            Assert.IsTrue(changes.Any(c => c.FieldDisplayName == "Tags" && c.ChangeType == (int)AuditChangeType.Added));
+            Assert.IsTrue(changes.Any(c => c.FieldDisplayName == "Tags" && c.ChangeType == (int)AuditChangeType.Deleted));
 
-            var addedChange = changes.First(c => c.Field == "Tags" && c.ChangeType == (int)AuditChangeType.Added);
-            var deletedChange = changes.First(c => c.Field == "Tags" && c.ChangeType == (int)AuditChangeType.Deleted);
+            var addedChange = changes.First(c => c.FieldDisplayName == "Tags" && c.ChangeType == (int)AuditChangeType.Added);
+            var deletedChange = changes.First(c => c.FieldDisplayName == "Tags" && c.ChangeType == (int)AuditChangeType.Deleted);
 
             Assert.Contains("C", addedChange.NewValue);
             Assert.Contains("A", deletedChange.OldValue);
@@ -259,19 +259,19 @@ namespace ZKEACMS.AuditTrail.Test
 
             var changes = EntityComparer.Compare(oldValue, newValue, valueProviders);
 
-            Assert.IsTrue(changes.Any(c => c.Field == "Inner.Color"));
-            Assert.IsTrue(changes.Any(c => c.Field == "Inner.Size"));
-            Assert.IsTrue(changes.Any(c => c.Field == "Inner.Material"));
+            Assert.IsTrue(changes.Any(c => c.FieldDisplayName == "Inner.Color"));
+            Assert.IsTrue(changes.Any(c => c.FieldDisplayName == "Inner.Size"));
+            Assert.IsTrue(changes.Any(c => c.FieldDisplayName == "Inner.Material"));
 
-            var colorChange = changes.First(c => c.Field == "Inner.Color");
+            var colorChange = changes.First(c => c.FieldDisplayName == "Inner.Color");
             Assert.AreEqual("Blue", colorChange.NewValue);
             Assert.AreEqual("Red", colorChange.OldValue);
 
-            var sizeChange = changes.First(c => c.Field == "Inner.Size");
+            var sizeChange = changes.First(c => c.FieldDisplayName == "Inner.Size");
             Assert.AreEqual("M", sizeChange.OldValue);
             Assert.IsNull(sizeChange.NewValue);
 
-            var materialChange = changes.First(c => c.Field == "Inner.Material");
+            var materialChange = changes.First(c => c.FieldDisplayName == "Inner.Material");
             Assert.IsNull(materialChange.OldValue);
             Assert.AreEqual("Cotton", materialChange.NewValue);
         }

@@ -143,7 +143,7 @@ namespace ZKEACMS.AuditTrail.Test
 
             // Assert
             Assert.HasCount(1, changes);
-            Assert.AreEqual("Name", changes[0].Field);
+            Assert.AreEqual("Name", changes[0].FieldDisplayName);
             Assert.AreEqual("OldName", changes[0].OldValue);
             Assert.AreEqual("NewName", changes[0].NewValue);
         }
@@ -160,9 +160,9 @@ namespace ZKEACMS.AuditTrail.Test
 
             // Assert
             Assert.HasCount(3, changes);
-            Assert.IsTrue(changes.Any(c => c.Field == "Id"));
-            Assert.IsTrue(changes.Any(c => c.Field == "Name"));
-            Assert.IsTrue(changes.Any(c => c.Field == "Age"));
+            Assert.IsTrue(changes.Any(c => c.FieldDisplayName == "Id"));
+            Assert.IsTrue(changes.Any(c => c.FieldDisplayName == "Name"));
+            Assert.IsTrue(changes.Any(c => c.FieldDisplayName == "Age"));
         }
 
         [TestMethod]
@@ -204,12 +204,12 @@ namespace ZKEACMS.AuditTrail.Test
             var changes = EntityComparer.Compare(entity1, entity2);
 
             // Assert
-            Assert.IsTrue(changes.Exists(c => c.Field == "Owner.Name"));
-            Assert.IsTrue(changes.Exists(c => c.Field == "Owner.Age"));
-            Assert.AreEqual("OldOwner", changes.First(c => c.Field == "Owner.Name").OldValue);
-            Assert.AreEqual("NewOwner", changes.First(c => c.Field == "Owner.Name").NewValue);
-            Assert.AreEqual("30", changes.First(c => c.Field == "Owner.Age").OldValue);
-            Assert.AreEqual("35", changes.First(c => c.Field == "Owner.Age").NewValue);
+            Assert.IsTrue(changes.Exists(c => c.FieldDisplayName == "Owner.Name"));
+            Assert.IsTrue(changes.Exists(c => c.FieldDisplayName == "Owner.Age"));
+            Assert.AreEqual("OldOwner", changes.First(c => c.FieldDisplayName == "Owner.Name").OldValue);
+            Assert.AreEqual("NewOwner", changes.First(c => c.FieldDisplayName == "Owner.Name").NewValue);
+            Assert.AreEqual("30", changes.First(c => c.FieldDisplayName == "Owner.Age").OldValue);
+            Assert.AreEqual("35", changes.First(c => c.FieldDisplayName == "Owner.Age").NewValue);
         }
 
         [TestMethod]
@@ -234,9 +234,9 @@ namespace ZKEACMS.AuditTrail.Test
 
             // Assert
             Assert.HasCount(3, changes);
-            Assert.AreEqual("100", changes.First(c => c.Field == "Owner.Id").NewValue);
-            Assert.AreEqual("NewOwner", changes.First(c => c.Field == "Owner.Name").NewValue);
-            Assert.AreEqual("30", changes.First(c => c.Field == "Owner.Age").NewValue);
+            Assert.AreEqual("100", changes.First(c => c.FieldDisplayName == "Owner.Id").NewValue);
+            Assert.AreEqual("NewOwner", changes.First(c => c.FieldDisplayName == "Owner.Name").NewValue);
+            Assert.AreEqual("30", changes.First(c => c.FieldDisplayName == "Owner.Age").NewValue);
         }
 
         #endregion
@@ -265,9 +265,9 @@ namespace ZKEACMS.AuditTrail.Test
 
             // Assert
             Assert.HasCount(1, changes);
-            Assert.AreEqual("Name", changes[0].Field);
-            Assert.IsFalse(changes.Any(c => c.Field == "Password"));
-            Assert.IsFalse(changes.Any(c => c.Field == "Secret"));
+            Assert.AreEqual("Name", changes[0].FieldDisplayName);
+            Assert.IsFalse(changes.Any(c => c.FieldDisplayName == "Password"));
+            Assert.IsFalse(changes.Any(c => c.FieldDisplayName == "Secret"));
         }
 
         [TestMethod]
@@ -316,7 +316,7 @@ namespace ZKEACMS.AuditTrail.Test
 
             // Assert
             Assert.HasCount(1, changes);
-            Assert.AreEqual("CreatedDate", changes[0].Field);
+            Assert.AreEqual("CreatedDate", changes[0].FieldDisplayName);
         }
 
         #endregion
@@ -352,7 +352,7 @@ namespace ZKEACMS.AuditTrail.Test
 
             // Assert
             Assert.HasCount(1, changes);
-            Assert.AreEqual("Items", changes[0].Field);
+            Assert.AreEqual("Items", changes[0].FieldDisplayName);
             Assert.AreEqual("(2):Product2", changes[0].NewValue);
             Assert.IsNull(changes[0].OldValue);
         }
@@ -386,7 +386,7 @@ namespace ZKEACMS.AuditTrail.Test
 
             // Assert
             Assert.HasCount(1, changes);
-            Assert.AreEqual("Items", changes[0].Field);
+            Assert.AreEqual("Items", changes[0].FieldDisplayName);
             Assert.AreEqual("(2):Product2", changes[0].OldValue);
             Assert.IsNull(changes[0].NewValue);
         }
@@ -419,7 +419,7 @@ namespace ZKEACMS.AuditTrail.Test
 
             // Assert
             Assert.HasCount(1, changes);
-            Assert.AreEqual("Items[(1):Product1].Quantity", changes[0].Field);
+            Assert.AreEqual("Items[(1):Product1].Quantity", changes[0].FieldDisplayName);
             Assert.AreEqual("2", changes[0].OldValue);
             Assert.AreEqual("5", changes[0].NewValue);
         }
@@ -444,7 +444,7 @@ namespace ZKEACMS.AuditTrail.Test
 
             // Assert
             Assert.HasCount(1, changes);
-            Assert.AreEqual("Tags", changes[0].Field);
+            Assert.AreEqual("Tags", changes[0].FieldDisplayName);
         }
 
         [TestMethod]
@@ -467,7 +467,7 @@ namespace ZKEACMS.AuditTrail.Test
 
             // Assert
             Assert.HasCount(1, changes);
-            Assert.AreEqual("Items", changes[0].Field);
+            Assert.AreEqual("Items", changes[0].FieldDisplayName);
             Assert.AreEqual("(1):Product1", changes[0].NewValue);
         }
 
@@ -522,9 +522,9 @@ namespace ZKEACMS.AuditTrail.Test
             var changes = EntityComparer.Compare(entity1, entity2);
 
             // Assert
-            Assert.IsTrue(changes.Exists(c => c.Field == "FirstName"));
-            Assert.AreEqual("John", changes.First(c => c.Field == "FirstName").OldValue);
-            Assert.AreEqual("Jane", changes.First(c => c.Field == "FirstName").NewValue);
+            Assert.IsTrue(changes.Exists(c => c.FieldDisplayName == "FirstName"));
+            Assert.AreEqual("John", changes.First(c => c.FieldDisplayName == "FirstName").OldValue);
+            Assert.AreEqual("Jane", changes.First(c => c.FieldDisplayName == "FirstName").NewValue);
         }
 
         [TestMethod]
@@ -552,12 +552,12 @@ namespace ZKEACMS.AuditTrail.Test
             var changes = EntityComparer.Compare(entity1, entity2);
 
             // Assert
-            Assert.IsTrue(changes.Exists(c => c.Field == "FirstName"));
-            Assert.IsTrue(changes.Exists(c => c.Field == "Salary"));
-            Assert.AreEqual("John", changes.First(c => c.Field == "FirstName").OldValue);
-            Assert.AreEqual("Jane", changes.First(c => c.Field == "FirstName").NewValue);
-            Assert.AreEqual("50000", changes.First(c => c.Field == "Salary").OldValue);
-            Assert.AreEqual("55000", changes.First(c => c.Field == "Salary").NewValue);
+            Assert.IsTrue(changes.Exists(c => c.FieldDisplayName == "FirstName"));
+            Assert.IsTrue(changes.Exists(c => c.FieldDisplayName == "Salary"));
+            Assert.AreEqual("John", changes.First(c => c.FieldDisplayName == "FirstName").OldValue);
+            Assert.AreEqual("Jane", changes.First(c => c.FieldDisplayName == "FirstName").NewValue);
+            Assert.AreEqual("50000", changes.First(c => c.FieldDisplayName == "Salary").OldValue);
+            Assert.AreEqual("55000", changes.First(c => c.FieldDisplayName == "Salary").NewValue);
         }
 
         [TestMethod]
@@ -609,8 +609,8 @@ namespace ZKEACMS.AuditTrail.Test
             var changes = EntityComparer.Compare(entity1, entity2);
 
             // Assert
-            Assert.IsTrue(changes.Exists(c => c.Field == "Employees"));
-            var addedChange = changes.First(c => c.Field == "Employees");
+            Assert.IsTrue(changes.Exists(c => c.FieldDisplayName == "Employees"));
+            var addedChange = changes.First(c => c.FieldDisplayName == "Employees");
             Assert.IsNull(addedChange.OldValue);
             Assert.AreEqual("(2|IT):Jane, Smith", addedChange.NewValue); // Composite key: "2|IT" and composite title: "Jane, Smith"
         }
@@ -664,8 +664,8 @@ namespace ZKEACMS.AuditTrail.Test
             var changes = EntityComparer.Compare(entity1, entity2);
 
             // Assert
-            Assert.IsTrue(changes.Exists(c => c.Field == "Employees"));
-            var removedChange = changes.First(c => c.Field == "Employees");
+            Assert.IsTrue(changes.Exists(c => c.FieldDisplayName == "Employees"));
+            var removedChange = changes.First(c => c.FieldDisplayName == "Employees");
             Assert.IsNull(removedChange.NewValue);
             Assert.AreEqual("(2|IT):Jane, Smith", removedChange.OldValue); // Composite key: "2|IT" and composite title: "Jane, Smith"
         }
@@ -712,14 +712,14 @@ namespace ZKEACMS.AuditTrail.Test
 
             // Assert
             // Check that the changes are detected under the correct path using composite key and title
-            Assert.IsTrue(changes.Exists(c => c.Field == "Employees[(1|IT):John, Doe].FirstName")); // Composite key: "1|IT" and composite title: "John, Doe"
-            Assert.IsTrue(changes.Exists(c => c.Field == "Employees[(1|IT):John, Doe].Salary"));   // Composite key: "1|IT" and composite title: "John, Doe"
+            Assert.IsTrue(changes.Exists(c => c.FieldDisplayName == "Employees[(1|IT):John, Doe].FirstName")); // Composite key: "1|IT" and composite title: "John, Doe"
+            Assert.IsTrue(changes.Exists(c => c.FieldDisplayName == "Employees[(1|IT):John, Doe].Salary"));   // Composite key: "1|IT" and composite title: "John, Doe"
 
-            var firstNameChange = changes.First(c => c.Field == "Employees[(1|IT):John, Doe].FirstName");
+            var firstNameChange = changes.First(c => c.FieldDisplayName == "Employees[(1|IT):John, Doe].FirstName");
             Assert.AreEqual("John", firstNameChange.OldValue);
             Assert.AreEqual("John Updated", firstNameChange.NewValue);
 
-            var salaryChange = changes.First(c => c.Field == "Employees[(1|IT):John, Doe].Salary");
+            var salaryChange = changes.First(c => c.FieldDisplayName == "Employees[(1|IT):John, Doe].Salary");
             Assert.AreEqual("50000", salaryChange.OldValue);
             Assert.AreEqual("55000", salaryChange.NewValue);
         }

@@ -9,7 +9,7 @@ namespace Easy.AuditTrail
     public class FieldChange
     {
         public int Sequence { get; set; }
-        public string Field { get; set; }
+        public string FieldDisplayName { get; set; }
         public int? ValueType { get; set; }
         public int? ChangeType { get; set; }
         public string OldValue { get; set; }

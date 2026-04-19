@@ -57,16 +57,16 @@ namespace ZKEACMS.AuditTrail.Test
             var changes = EntityComparer.Compare(oldValue, newValue, valueProviders);
 
             // Assert
-            Assert.IsTrue(changes.Exists(c => c.Field.Contains("标题") || c.Field.Contains("Content")));
+            Assert.IsTrue(changes.Exists(c => c.FieldDisplayName.Contains("标题") || c.FieldDisplayName.Contains("Content")));
             
             // Check that the Title field was renamed to "标题"
-            var titleChange = changes.FirstOrDefault(c => c.Field == "标题");
+            var titleChange = changes.FirstOrDefault(c => c.FieldDisplayName == "标题");
             Assert.IsNotNull(titleChange);
             Assert.AreEqual("Old Title", titleChange.OldValue);
             Assert.AreEqual("New Title", titleChange.NewValue);
             
             // Check that Content field still uses original name (not handled by GetDisplayName)
-            var contentChange = changes.FirstOrDefault(c => c.Field == "Content");
+            var contentChange = changes.FirstOrDefault(c => c.FieldDisplayName == "Content");
             Assert.IsNotNull(contentChange);
             Assert.AreEqual("Old Content", contentChange.OldValue);
             Assert.AreEqual("New Content", contentChange.NewValue);
@@ -86,14 +86,14 @@ namespace ZKEACMS.AuditTrail.Test
             var changes = EntityComparer.Compare(oldValue, newValue, valueProviders);
 
             // Assert
-            Assert.IsTrue(changes.Exists(c => c.Field == "Title"));
-            Assert.IsTrue(changes.Exists(c => c.Field == "Content"));
+            Assert.IsTrue(changes.Exists(c => c.FieldDisplayName == "Title"));
+            Assert.IsTrue(changes.Exists(c => c.FieldDisplayName == "Content"));
             
-            var titleChange = changes.First(c => c.Field == "Title");
+            var titleChange = changes.First(c => c.FieldDisplayName == "Title");
             Assert.AreEqual("Old Title", titleChange.OldValue);
             Assert.AreEqual("New Title", titleChange.NewValue);
             
-            var contentChange = changes.First(c => c.Field == "Content");
+            var contentChange = changes.First(c => c.FieldDisplayName == "Content");
             Assert.AreEqual("Old Content", contentChange.OldValue);
             Assert.AreEqual("New Content", contentChange.NewValue);
         }

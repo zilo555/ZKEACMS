@@ -72,7 +72,7 @@ namespace ZKEACMS.AuditTrail.Service
                 {
                     changes.Add(new FieldChange
                     {
-                        Field = prefix.TrimEnd('.'),
+                        FieldDisplayName = prefix.TrimEnd('.'),
                         OldValue = SerializeValue(oldObj, currentPropertyInfo, valueProviders),
                         NewValue = SerializeValue(newObj, currentPropertyInfo, valueProviders)
                     });
@@ -166,7 +166,7 @@ namespace ZKEACMS.AuditTrail.Service
 
                     changes.Add(new FieldChange
                     {
-                        Field = fieldName,
+                        FieldDisplayName = fieldName,
                         OldValue = SerializeValue(oldFieldValue, property, valueProviders),
                         NewValue = SerializeValue(newFieldValue, property, valueProviders)
                     });
@@ -221,7 +221,7 @@ namespace ZKEACMS.AuditTrail.Service
             {
                 changes.Add(new FieldChange
                 {
-                    Field = fieldName,
+                    FieldDisplayName = fieldName,
                     ChangeType = (int)AuditChangeType.Added,
                     NewValue = SerializeValue(addedItems, property, valueProviders)
                 });
@@ -230,7 +230,7 @@ namespace ZKEACMS.AuditTrail.Service
             {
                 changes.Add(new FieldChange
                 {
-                    Field = fieldName,
+                    FieldDisplayName = fieldName,
                     ChangeType = (int)AuditChangeType.Deleted,
                     OldValue = SerializeValue(deletedItems, property, valueProviders)
                 });
@@ -341,7 +341,7 @@ namespace ZKEACMS.AuditTrail.Service
                     var keyAndTitle = GetItemKeyAndTitle(addedItem, valueProviders);
                     changes.Add(new FieldChange
                     {
-                        Field = fieldName,
+                        FieldDisplayName = fieldName,
                         ChangeType = (int)AuditChangeType.Added,
                         NewValue = keyAndTitle
                     });
@@ -353,7 +353,7 @@ namespace ZKEACMS.AuditTrail.Service
                     var keyAndTitle = GetItemKeyAndTitle(removedItem, valueProviders);
                     changes.Add(new FieldChange
                     {
-                        Field = fieldName,
+                        FieldDisplayName = fieldName,
                         ChangeType = (int)AuditChangeType.Deleted,
                         OldValue = keyAndTitle
                     });
@@ -390,7 +390,7 @@ namespace ZKEACMS.AuditTrail.Service
             {
                 changes.Add(new FieldChange
                 {
-                    Field = fieldName,
+                    FieldDisplayName = fieldName,
                     ChangeType = (int)AuditChangeType.Added,
                     NewValue = SerializeValue(addedItems, currentPropertyInfo, valueProviders)
                 });
@@ -402,7 +402,7 @@ namespace ZKEACMS.AuditTrail.Service
             {
                 changes.Add(new FieldChange
                 {
-                    Field = fieldName,
+                    FieldDisplayName = fieldName,
                     ChangeType = (int)AuditChangeType.Deleted,
                     OldValue = SerializeValue(deletedItems, currentPropertyInfo, valueProviders)
                 });
@@ -466,7 +466,7 @@ namespace ZKEACMS.AuditTrail.Service
 
                     changes.Add(new FieldChange
                     {
-                        Field = fieldPath,
+                        FieldDisplayName = fieldPath,
                         OldValue = SerializeValue(oldValue, currentPropertyInfo, valueProviders),
                         NewValue = SerializeValue(newValue, currentPropertyInfo, valueProviders)
                     });

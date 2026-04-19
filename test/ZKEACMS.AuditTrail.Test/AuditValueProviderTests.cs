@@ -60,8 +60,8 @@ namespace ZKEACMS.AuditTrail.Test
             var changes = EntityComparer.Compare(oldValue, newValue, valueProviders);
 
             // Assert
-            Assert.IsTrue(changes.Exists(c => c.Field.Contains(nameof(TestEntityWithStatus.Status))));
-            var statusChange = changes.First(c => c.Field.Contains(nameof(TestEntityWithStatus.Status)));
+            Assert.IsTrue(changes.Exists(c => c.FieldDisplayName.Contains(nameof(TestEntityWithStatus.Status))));
+            var statusChange = changes.First(c => c.FieldDisplayName.Contains(nameof(TestEntityWithStatus.Status)));
             Assert.AreEqual("Active", statusChange.OldValue);
             Assert.AreEqual("Inactive", statusChange.NewValue);
         }
@@ -80,8 +80,8 @@ namespace ZKEACMS.AuditTrail.Test
             var changes = EntityComparer.Compare(oldValue, newValue, valueProviders);
 
             // Assert
-            Assert.IsTrue(changes.Exists(c => c.Field.Contains(nameof(TestEntityWithStatus.Status))));
-            var statusChange = changes.First(c => c.Field.Contains(nameof(TestEntityWithStatus.Status)));
+            Assert.IsTrue(changes.Exists(c => c.FieldDisplayName.Contains(nameof(TestEntityWithStatus.Status))));
+            var statusChange = changes.First(c => c.FieldDisplayName.Contains(nameof(TestEntityWithStatus.Status)));
             Assert.AreEqual("1", statusChange.OldValue);
             Assert.AreEqual("2", statusChange.NewValue);
         }
@@ -99,13 +99,13 @@ namespace ZKEACMS.AuditTrail.Test
             var changes = EntityComparer.Compare(oldValue, newValue, valueProviders);
 
             // Assert
-            Assert.IsTrue(changes.Exists(c => c.Field.Contains(nameof(TestEntityWithStatus.Name))));
-            var nameChange = changes.First(c => c.Field.Contains(nameof(TestEntityWithStatus.Name)));
+            Assert.IsTrue(changes.Exists(c => c.FieldDisplayName.Contains(nameof(TestEntityWithStatus.Name))));
+            var nameChange = changes.First(c => c.FieldDisplayName.Contains(nameof(TestEntityWithStatus.Name)));
             Assert.AreEqual("OldName", nameChange.OldValue);
             Assert.AreEqual("NewName", nameChange.NewValue);
             
             // Verify that Status did not change (since we changed Name only)
-            Assert.IsFalse(changes.Exists(c => c.Field.Contains(nameof(TestEntityWithStatus.Status))));
+            Assert.IsFalse(changes.Exists(c => c.FieldDisplayName.Contains(nameof(TestEntityWithStatus.Status))));
         }
 
     }

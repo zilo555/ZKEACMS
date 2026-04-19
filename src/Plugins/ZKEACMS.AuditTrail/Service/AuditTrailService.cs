@@ -49,7 +49,7 @@ namespace ZKEACMS.AuditTrail.Service
             {
                 new FieldChange
                 {
-                    Field = field,
+                    FieldDisplayName = field,
                     ChangeType = (int)AuditChangeType.Added,
                     NewValue = newValue
                 }
@@ -107,7 +107,7 @@ namespace ZKEACMS.AuditTrail.Service
 
             for (int i = 0; i < changes.Count; i++)
             {
-                changes[i].Field = field;
+                changes[i].FieldDisplayName = field;
             }
             SaveAuditRecord(entityType, id, changes, remark);
         }
@@ -138,7 +138,7 @@ namespace ZKEACMS.AuditTrail.Service
             {
                 new FieldChange
                 {
-                    Field = field,
+                    FieldDisplayName = field,
                     ChangeType = (int)AuditChangeType.Deleted,
                     OldValue = oldValue
                 }
