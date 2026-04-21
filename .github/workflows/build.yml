@@ -19,10 +19,7 @@ jobs:
         dotnet-version: '9.0.x'
     - name: Install dependencies
       run: dotnet restore
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
-    - name: Test EasyFrameWork
-      working-directory: ./test/EasyFrameWork.Test
+    - name: Run tests
       run: dotnet test
     - name: Install tools
       run: |
