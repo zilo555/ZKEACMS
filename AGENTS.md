@@ -12,7 +12,8 @@ This file defines the default behavior for Copilot in this repository.
 
 ## Build and Run
 
-Build the full solution with `dotnet build` or build a specific project with `dotnet build xxxx.csproj`.
+Build the full solution with `Build.cmd` on windows or `Build.sh` on Linux.
+Run the web host with `Run.cmd` on windows or `Run.sh` on Linux.
 
 ## Dependency Management
 
