@@ -9,6 +9,10 @@ description: "Use when creating a Playwright page object model for a ZKEACMS pag
 
 Create a complete TypeScript page object model for a ZKEACMS page by inspecting the target page, determining whether it is an admin or frontend page, and writing a stable model in the correct project folder.
 
+## Declaration
+
+Plesease use playwright/* tools (NOT @playwright/test framework) to opoen/inspect the page.
+
 ## When To Use
 
 Use this skill when the task is to:
