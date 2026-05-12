@@ -61,7 +61,7 @@ namespace ZKEACMS.Test.Account
         public void TestGetLinks()
         {
             var links = _serviceProvider.GetService<IUserCenterLinkService>().GetLinks();
-            Assert.IsTrue(links.Count() == 4);
+            Assert.AreEqual(4, links.Count());
         }
     }
 }

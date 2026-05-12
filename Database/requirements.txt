@@ -1,0 +1,5 @@
+enum34==1.1.10
+future==1.0.0
+mssql-scripter==1.0.0a23
+packaging==26.0
+wheel==0.46.3

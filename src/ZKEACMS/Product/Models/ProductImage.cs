@@ -2,6 +2,7 @@
  * Copyright (c) ZKEASOFT. All rights reserved. 
  * http://www.zkea.net/licenses */
 
+using Easy.AuditTrail.Attributes;
 using Easy.MetaData;
 using Easy.Models;
 using Easy.RepositoryPattern;
@@ -17,7 +18,7 @@ namespace ZKEACMS.Product.Models
     [DataTable("ProductImage")]
     public class ProductImage : EditorEntity
     {
-        [Key]
+        [Key, AuditKey]
         public int ID { get; set; }
         public int ProductId { get; set; }
         public string ImageUrl { get; set; }
@@ -29,7 +30,7 @@ namespace ZKEACMS.Product.Models
             ViewConfig(m => m.ID).AsHidden();
             ViewConfig(m => m.ProductId).AsHidden();
             ViewConfig(m => m.Description).AsHidden();
-            
+
             ViewConfig(m => m.ImageUrl).AsTextBox().Required().MediaSelector();
         }
     }

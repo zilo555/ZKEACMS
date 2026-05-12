@@ -1,0 +1,72 @@
+@using Easy.Modules.Role
+@model List<UserRoleRelation>
+@inject IRoleService RoleService
+@{
+    var assignedRoleIds = new HashSet<int>(Model?.Select(m => m.RoleID) ?? Enumerable.Empty<int>());
+    var roles = RoleService.Get(m => m.ID > 0).OrderBy(m => m.Title).ToList();
+}
+
+<div class="user-roles-container">
+    <div class="row">
+        @for (var idx = 0; idx < roles.Count; idx++)
+        {
+            var role = roles[idx];
+            var isAssigned = assignedRoleIds.Contains(role.ID);
+            var relation = Model?.FirstOrDefault(r => r.RoleID == role.ID);
+            var actionTypeValue = isAssigned ? "Update" : "UnAttach";
+            if (!isAssigned && relation == null)
+            {
+                actionTypeValue = "UnAttach";
+            }
+            if (isAssigned && relation != null)
+            {
+                actionTypeValue = "Update";
+            }
+
+            <div class="col-xs-12 col-sm-6 col-md-2">
+                <div class="checkbox user-role-item" data-role-id="@role.ID" data-existing="@(relation != null ? "true" : "false")">
+                    <label>
+                        <input type="checkbox" class="role-checkbox" data-index="@idx" data-existing="@(relation != null ? "true" : "false")" @(isAssigned ? "checked=\"checked\"" : "") /> @role.Title
+                    </label>
+                    <input type="hidden" name="Roles[@idx].ID" value="@(relation?.ID ?? 0)" />
+                    <input type="hidden" name="Roles[@idx].RoleID" value="@role.ID" />
+                    <input type="hidden" name="Roles[@idx].UserID" value="@(relation?.UserID ?? "")" />
+                    <input type="hidden" name="Roles[@idx].ActionType" class="role-action-type" value="@actionTypeValue" />
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    (function () {
+        var container = $(".user-roles-container");
+        if (!container.length) {
+            return;
+        }
+
+        function calcActionType($item) {
+            var checked = $item.find(".role-checkbox").prop("checked");
+            var existing = $item.find(".role-checkbox").data("existing") === true || $item.find(".role-checkbox").data("existing") === "true";
+            var action = "UnAttach";
+
+            if (checked) {
+                action = existing ? "Update" : "Create";
+            } else {
+                action = existing ? "Delete" : "UnAttach";
+            }
+            $item.find(".role-action-type").val(action);
+        }
+
+        container.on("change", ".role-checkbox", function () {
+            var item = $(this).closest(".user-role-item");
+            calcActionType(item);
+        });
+
+        container.closest("form").on("submit", function () {
+            container.find(".user-role-item").each(function () {
+                calcActionType($(this));
+            });
+        });
+    })();
+</script>

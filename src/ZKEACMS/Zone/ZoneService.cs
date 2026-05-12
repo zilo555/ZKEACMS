@@ -51,19 +51,9 @@ namespace ZKEACMS.Zone
             IEnumerable<ZoneEntity> get()
             {
                 IEnumerable<ZoneEntity> zones = Get().Where(m => m.PageId == page.ID).OrderBy(m => m.ID).ToList();
-                if (!zones.Any())
-                {
-                    zones = GetByLayoutId(page.LayoutId);
-                    if (ApplicationContext.IsAuthenticated)
-                    {
-                        foreach (var item in zones)
-                        {
-                            item.PageId = page.ID;
-                            Add(item);
-                        }
-                    }
-                }
-                return zones;
+                if (zones.Any()) return zones;
+
+                return GetByLayoutId(page.LayoutId);
             }
             if (page.IsPublishedPage)
             {
@@ -76,6 +66,11 @@ namespace ZKEACMS.Zone
                 });
             }
             return get();
+        }
+
+        public IEnumerable<ZoneEntity> GetByPageId(string pageId)
+        {
+            return Get().Where(m => m.PageId == pageId).OrderBy(m => m.ID).ToList();
         }
         public IEnumerable<ZoneEntity> GetByLayoutId(string layoutId)
         {

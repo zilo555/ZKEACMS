@@ -2,6 +2,7 @@
  * Copyright (c) ZKEASOFT. All rights reserved. 
  * http://www.zkea.net/licenses */
 
+using Easy.AuditTrail.Attributes;
 using Easy.MetaData;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,10 @@ namespace ZKEACMS.Product.Models
 {
     public class ProductItem
     {
+        [AuditTitle]
         public string Title { get; set; }
+
+        [AuditKey]
         public int ProductID { get; set; }
     }
     class ProductGalleryProductMetaData : ViewMetaData<ProductItem>

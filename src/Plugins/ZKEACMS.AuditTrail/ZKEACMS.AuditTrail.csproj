@@ -1,0 +1,8 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+	<PropertyGroup>
+		<AssemblyName>ZKEACMS.AuditTrail</AssemblyName>
+		<PackageId>ZKEACMS.AuditTrail</PackageId>
+		<PackageTags>CMS.AuditTrail</PackageTags>
+		<Description>AuditTrail plugin for ZKEACMS</Description>
+	</PropertyGroup>
+</Project>

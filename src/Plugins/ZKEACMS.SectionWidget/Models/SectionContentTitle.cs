@@ -8,6 +8,7 @@ using Easy.MetaData;
 using System.ComponentModel.DataAnnotations.Schema;
 using ZKEACMS.Extend;
 using Easy.RepositoryPattern;
+using Easy.AuditTrail.Attributes;
 
 namespace ZKEACMS.SectionWidget.Models
 {
@@ -20,6 +21,7 @@ namespace ZKEACMS.SectionWidget.Models
         public const string H4 = "h4";
         public const string H5 = "h5";
         public const string H6 = "h6";
+        [AuditTitle]
         public string InnerText { get; set; }
         public string Href { get; set; }
         public string TitleLevel { get; set; }

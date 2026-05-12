@@ -3,6 +3,7 @@
  * http://www.zkea.net/licenses */
 
 using Easy;
+using Easy.AuditTrail;
 using Easy.Cache;
 using Easy.Constant;
 using Easy.RepositoryPattern;
@@ -19,9 +20,11 @@ namespace ZKEACMS.Redirection.Service
     {
         private const string CacheKey = "AllUrlRedirectItems";
         private readonly ICacheManager<UrlRedirectService> _cacheManager;
-        public UrlRedirectService(IApplicationContext applicationContext, CMSDbContext dbContext, ICacheManager<UrlRedirectService> cacheManager) : base(applicationContext, dbContext)
+        private readonly IAuditTrailService _auditTrailService;
+        public UrlRedirectService(IApplicationContext applicationContext, CMSDbContext dbContext, ICacheManager<UrlRedirectService> cacheManager, IAuditTrailService auditTrailService) : base(applicationContext, dbContext)
         {
             _cacheManager = cacheManager;
+            _auditTrailService = auditTrailService;
         }
         private void RemoveCache()
         {
@@ -121,9 +124,11 @@ namespace ZKEACMS.Redirection.Service
             {
                 return validResult;
             }
+            var oldItem = Get(item.ID);
             ErrorOr<UrlRedirect> result = base.Update(item);
-            if (!result.HasError)
+            if (result.IsSuccess)
             {
+                _auditTrailService.AuditUpdate(oldItem, item);
                 RemoveCache();
             }
             return result;

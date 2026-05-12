@@ -3,6 +3,7 @@
  * http://www.zkea.net/licenses */
 
 using Easy;
+using Easy.AuditTrail;
 using Easy.RepositoryPattern;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -17,9 +18,12 @@ namespace ZKEACMS.Product.Service
     public class ProductGalleryService : ServiceBase<ProductGallery>, IProductGalleryService
     {
         private readonly IProductService _productService;
-        public ProductGalleryService(IApplicationContext applicationContext, CMSDbContext dbContext, IProductService productService) : base(applicationContext, dbContext)
+        private readonly IAuditTrailService _auditTrailService;
+
+        public ProductGalleryService(IApplicationContext applicationContext, CMSDbContext dbContext, IProductService productService, IAuditTrailService auditTrailService) : base(applicationContext, dbContext)
         {
             _productService = productService;
+            _auditTrailService = auditTrailService;
         }
 
         public override ProductGallery Get(params object[] primaryKey)
@@ -38,6 +42,18 @@ namespace ZKEACMS.Product.Service
                 }
             }
             return gallery;
+        }
+
+        public override ErrorOr<ProductGallery> Update(ProductGallery item)
+        {
+            var oldItem = Get(item.ID);
+            var result = base.Update(item);
+            if (result.IsSuccess)
+            {
+                var newItem = Get(item.ID);
+                _auditTrailService.AuditUpdate(oldItem, newItem);
+            }
+            return result;
         }
     }
 }

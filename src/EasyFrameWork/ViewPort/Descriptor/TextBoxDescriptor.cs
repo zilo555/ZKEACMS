@@ -30,7 +30,7 @@ namespace Easy.ViewPort.Descriptor
 
         public TextBoxDescriptor FormatAsDateTime()
         {
-            FormatDate("yyyy/MM/dd HH:mm");
+            FormatDate("yyyy/MM/dd HH:mm:ss");
             FormatDateForJavaScript("YYYY/MM/DD HH:mm:ss");
             return this;
         }

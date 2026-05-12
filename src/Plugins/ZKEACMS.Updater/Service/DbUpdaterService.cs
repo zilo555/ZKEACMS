@@ -19,7 +19,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
 using ZKEACMS.Options;
 using ZKEACMS.Updater.Models;
 
@@ -128,6 +127,7 @@ namespace ZKEACMS.Updater.Service
             catch (Exception ex)
             {
                 _logger.LogInformation("Getting database version failed. {0}", ex.Message);
+                return Easy.Version.Parse(Version.VersionInfo);
             }
             if (version == null)
             {
@@ -260,7 +260,7 @@ namespace ZKEACMS.Updater.Service
                 try
                 {
                     string result = _webClient.DownloadStringAsync(source).GetAwaiter().GetResult();
-                    releaseVersion = JsonSerializer.Deserialize<ReleaseVersion>(result);
+                    releaseVersion = JsonConverter.Deserialize<ReleaseVersion>(result);
                     break;
                 }
                 catch (Exception ex)

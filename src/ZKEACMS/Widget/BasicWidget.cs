@@ -2,6 +2,7 @@
  * Copyright (c) ZKEASOFT. All rights reserved. 
  * http://www.zkea.net/licenses */
 
+using Easy.AuditTrail.Attributes;
 using Easy.Constant;
 using Easy.RepositoryPattern;
 using Newtonsoft.Json;
@@ -21,7 +22,7 @@ namespace ZKEACMS.Widget
     }
     public class BasicWidget : WidgetBase
     {
-        [Key]
+        [Key, AuditKey]
         public override string ID
         {
             get; set;
@@ -155,7 +156,7 @@ namespace ZKEACMS.Widget
 
     public class SimpleWidgetBase : BasicWidget
     {
-        [Key, JsonIgnore]
+        [Key, JsonIgnore, AuditKey]
         public override string ID
         {
             get; set;
@@ -276,7 +277,7 @@ namespace ZKEACMS.Widget
             get; set;
         }
 
-        [NotMapped, JsonIgnore]
+        [NotMapped, JsonIgnore, AuditIgnore]
         public override string ExtendData
         {
             get; set;

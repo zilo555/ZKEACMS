@@ -12,6 +12,8 @@ using System.Linq;
 using Easy.Extend;
 using ZKEACMS.Event;
 using Easy.Constant;
+using ZKEACMS.Common.Service;
+using Easy.AuditTrail;
 
 namespace ZKEACMS.Article.Service
 {
@@ -19,14 +21,17 @@ namespace ZKEACMS.Article.Service
     {
         private readonly ILocalize _localize;
         private readonly IEventManager _eventManager;
+        private readonly IAuditTrailService _auditTrailService;
         public ArticleService(IApplicationContext applicationContext,
             ILocalize localize,
             CMSDbContext dbContext,
-            IEventManager eventManager)
+            IEventManager eventManager,
+            IAuditTrailService auditTrailService)
             : base(applicationContext, dbContext)
         {
             _localize = localize;
             _eventManager = eventManager;
+            _auditTrailService = auditTrailService;
         }
         public override ErrorOr<ArticleEntity> Add(ArticleEntity item)
         {
@@ -51,6 +56,7 @@ namespace ZKEACMS.Article.Service
                 return new Error("Url", _localize.Get("URL already exists"));
             }
             _eventManager.Trigger(Events.OnArticleUpdating, item);
+            _auditTrailService.AuditUpdate(Get(item.ID), item);
             result = base.Update(item);
             if (!result.HasError)
             {
@@ -105,7 +111,8 @@ namespace ZKEACMS.Article.Service
             }
             if (article.ID > 0)
             {
-                Update(article);
+                _auditTrailService.AuditUpdate(Get(article.ID), article);
+                base.Update(article);
                 _eventManager.Trigger(Events.OnArticlePublished, article);
             }
         }

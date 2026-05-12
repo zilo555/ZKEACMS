@@ -97,6 +97,7 @@ namespace Easy
             services.ConfigureMetaData<RoleEntity, RoleMetaData>();
             services.ConfigureMetaData<UserRoleRelation, UserRoleRelationMetaData>();
             services.ConfigureMetaData<SmtpSetting, SmtpSettingMetaData>();
+            services.ConfigureMetaData<AuditTrail.AuditTrailRecord, AuditTrail.AuditTrailRecordMetaData>();
 
 
             services.Configure<CDNOption>(configuration.GetSection("CDN"));

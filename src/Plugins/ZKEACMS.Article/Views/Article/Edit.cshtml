@@ -32,8 +32,23 @@
                 {
                     <input type="submit" class="btn btn-info publish" value="@L("Publish")" data-value="@ActionType.Publish" />
                 }
-                <a class="btn btn-default" href="@Url.Action("Index")">@L("Cancel")</a>
-            </div>
-        }
+        @Html.ChangeHistoryBtn(Model)
+        <a class="btn btn-default" href="@Url.Action("Index")">@L("Cancel")</a>
+    </div>
+}
     </div>
 </div>
+@if (!Authorizer.Authorize(ZKEACMS.Article.PermissionKeys.PublishArticle))
+{
+    using (Script.AtFoot())
+    {
+        <script>
+            $(function () {
+                var $cb = $("#IsPublish");
+                var val = $cb.prop("checked");
+                $cb.prop("disabled", true);
+                $("<input>").attr({ type: "hidden", name: "IsPublish" }).val(val ? "true" : "false").insertAfter($cb);
+            });
+        </script>
+    }
+}

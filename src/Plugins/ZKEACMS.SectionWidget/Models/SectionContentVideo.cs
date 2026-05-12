@@ -7,12 +7,14 @@ using Easy.MetaData;
 using System.ComponentModel.DataAnnotations.Schema;
 using ZKEACMS.Extend;
 using Easy.RepositoryPattern;
+using Easy.AuditTrail.Attributes;
 
 namespace ZKEACMS.SectionWidget.Models
 {
     [DataTable("SectionContentVideo")]
     public class SectionContentVideo : SectionContentBasic
     {
+        [AuditTitle]
         public string VideoTitle { get; set; }
         public string Thumbnail { get; set; }
         public int? Width { get; set; }

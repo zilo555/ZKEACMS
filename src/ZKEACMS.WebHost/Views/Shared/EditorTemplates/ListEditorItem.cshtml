@@ -1,18 +1,27 @@
+@using System.Reflection
+@using Easy.AuditTrail.Attributes
 @model Easy.Models.EditorEntity
 @{
     var model = ViewData.ModelMetadata;
     ViewData.TemplateInfo.HtmlFieldPrefix = ViewData.TemplateInfo.HtmlFieldPrefix.Replace(".[", "[");
-    
+    var ignores = model.Properties.Where(m => m.ShowForEdit).Select(m => m.PropertyName).ToArray();
+    var keyValue = AuditKeyAttribute.GetCombinedKeyValue(Model, ignores);
 }
 
 <div class="row item" data-name="@ViewData.TemplateInfo.HtmlFieldPrefix">
+    @if (keyValue.IsNotNullAndWhiteSpace())
+    {
+        <code style="position: absolute;left: 5px;top: 5px;">
+            #@keyValue
+        </code>
+    }
     @foreach (var item in model.Properties.Where(m => m.ShowForEdit).OrderBy(m => m.Order))
     {
         <div class="form-group">
             <div class="col-md-12 col-lg-2">
                 @Html.Label(item.PropertyName, item.DisplayName, new { @class = "control-label" })
             </div>
-            
+
             <div class="col-md-12 col-lg-9">
                 @Html.Editor(item.PropertyName)
                 @Html.ValidationMessage(item.PropertyName)
@@ -23,7 +32,7 @@
     <div class="hide">
         @foreach (var item in model.Properties.Where(m => !m.ShowForEdit))
         {
-            @Html.Editor(item.PropertyName,"Hidden")
+            @Html.Editor(item.PropertyName, "Hidden")
         }
     </div>
 </div>

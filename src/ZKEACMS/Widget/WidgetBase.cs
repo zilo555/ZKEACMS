@@ -14,6 +14,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Easy;
 using Newtonsoft.Json;
+using Easy.AuditTrail.Attributes;
 
 namespace ZKEACMS.Widget
 {
@@ -22,8 +23,9 @@ namespace ZKEACMS.Widget
         public static Dictionary<string, Type> KnownWidgetModel { get; } = new Dictionary<string, Type>();
         public static Dictionary<string, Type> KnownWidgetService { get; } = new Dictionary<string, Type>();
         private HashSet<string> availableZones = new HashSet<string>();
-        [Key]
+        [Key, AuditKey]
         public virtual string ID { get; set; }
+        public override int? Status { get; set; }
         public virtual string WidgetName { get; set; }
         public virtual int? Position { get; set; }
         public virtual string LayoutId { get; set; }

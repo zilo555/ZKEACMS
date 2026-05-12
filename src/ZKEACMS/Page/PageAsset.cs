@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Easy.AuditTrail.Attributes;
 using Easy.MetaData;
 using Easy.Models;
 
@@ -12,6 +13,7 @@ namespace ZKEACMS.Page
 {
     public class PageAsset : EditorEntity
     {
+        [AuditKey]
         public string Url { get; set; }
     }
     class PageAssetMetaData : ViewMetaData<PageAsset>

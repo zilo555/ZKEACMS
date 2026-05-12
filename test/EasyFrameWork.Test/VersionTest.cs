@@ -18,13 +18,22 @@ namespace EasyFrameWork.Test
         public void TestParse()
         {
             Version v = Version.Parse("1.1");
-            Assert.IsTrue(v.Major == 1 && v.Minor == 1 && v.Revision == 0 && v.Build == 0);
+            Assert.AreEqual(1, v.Major);
+            Assert.AreEqual(1, v.Minor);
+            Assert.AreEqual(0, v.Revision);
+            Assert.AreEqual(0, v.Build);
 
             v = Version.Parse("1.1.2");
-            Assert.IsTrue(v.Major == 1 && v.Minor == 1 && v.Revision == 2 && v.Build == 0);
+            Assert.AreEqual(1, v.Major);
+            Assert.AreEqual(1, v.Minor);
+            Assert.AreEqual(2, v.Revision);
+            Assert.AreEqual(0, v.Build);
 
             v = Version.Parse("1.1.2.3");
-            Assert.IsTrue(v.Major == 1 && v.Minor == 1 && v.Revision == 2 && v.Build == 3);
+            Assert.AreEqual(1, v.Major);
+            Assert.AreEqual(1, v.Minor);
+            Assert.AreEqual(2, v.Revision);
+            Assert.AreEqual(3, v.Build);
         }
 
         [TestMethod]
@@ -33,7 +42,7 @@ namespace EasyFrameWork.Test
             Version v1 = Version.Parse("1.1");
             Version v2 = Version.Parse("1.1");
 
-            Assert.IsTrue(v1 == v2);
+            Assert.AreEqual(v1, v2);
 
             Assert.IsTrue(v1.Equals(v2));
         }
@@ -43,7 +52,7 @@ namespace EasyFrameWork.Test
             Version v1 = Version.Parse("1.2");
             Version v2 = Version.Parse("1.1");
 
-            Assert.IsTrue(v1 != v2);
+            Assert.AreNotEqual(v1, v2);
         }
         [TestMethod]
         public void TestGreaterLessThan()
@@ -86,7 +95,7 @@ namespace EasyFrameWork.Test
         public void TestToString()
         {
             Version v1 = Version.Parse("1.2.0.0");
-            Assert.IsTrue("1.2.0.0" == v1.ToString());
+            Assert.AreEqual("1.2.0.0", v1.ToString());
         }
 
         [TestMethod]

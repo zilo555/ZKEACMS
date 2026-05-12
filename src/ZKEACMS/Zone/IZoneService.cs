@@ -11,6 +11,7 @@ namespace ZKEACMS.Zone
     public interface IZoneService : IService<ZoneEntity>
     {
         IEnumerable<ZoneEntity> GetByPage(PageEntity page);
+        IEnumerable<ZoneEntity> GetByPageId(string pageId);
         IEnumerable<ZoneEntity> GetByLayoutId(string layoutId);
         void RemoveCache(string pageId);
         void ClearCache();

@@ -17,6 +17,7 @@ using ZKEACMS.Layout;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Concurrent;
 using Easy.Cache;
+using Easy.AuditTrail;
 
 namespace ZKEACMS.Layout
 {
@@ -27,6 +28,8 @@ namespace ZKEACMS.Layout
         private readonly IWidgetActivator _widgetActivator;
         private readonly IWidgetBasePartService _widgetService;
         private readonly ICacheManager<LayoutService> _cacheManager;
+        private readonly IAuditTrailService _auditTrailService;
+        private readonly ILocalize _localize;
 
         public LayoutService(IZoneService zoneService,
             IWidgetBasePartService widgetService,
@@ -34,7 +37,9 @@ namespace ZKEACMS.Layout
             ILayoutHtmlService layoutHtmlService,
             IWidgetActivator widgetActivator,
             ICacheManager<LayoutService> cacheManager,
-            CMSDbContext dbContext)
+            CMSDbContext dbContext,
+            IAuditTrailService auditTrailService,
+            ILocalize localize)
             : base(applicationContext, dbContext)
         {
             _zoneService = zoneService;
@@ -42,6 +47,8 @@ namespace ZKEACMS.Layout
             _layoutHtmlService = layoutHtmlService;
             _widgetActivator = widgetActivator;
             _cacheManager = cacheManager;
+            _auditTrailService = auditTrailService;
+            _localize = localize;
         }
 
         public override DbSet<LayoutEntity> CurrentDbSet => DbContext.Layout;
@@ -83,27 +90,33 @@ namespace ZKEACMS.Layout
             {
                 if (item.Zones != null)
                 {
-                    var zones = _zoneService.GetByPage(new PageEntity { ID = item.Page.ID, LayoutId = item.ID });
-
+                    var zones = _zoneService.GetByPageId(item.Page.ID);
                     item.Zones.Where(m => zones.All(n => n.ID != m.ID)).Each(m =>
                     {
                         m.LayoutId = item.ID;
                         m.PageId = item.Page.ID;
                         _zoneService.Add(m);
+                        _auditTrailService.AuditCreate<PageEntity>(m.PageId, _localize.Get("Zone"), m.ZoneName);
                     });
                     zones.Each(m =>
                     {
                         var changeZone = item.Zones.FirstOrDefault(z => z.ID == m.ID);
                         if (changeZone != null)
                         {
+                            _auditTrailService.AuditUpdate<PageEntity>(m.PageId, _localize.Get("Zone"), m.ZoneName, changeZone.ZoneName);
                             m.LayoutId = item.ID;
                             m.PageId = item.Page.ID;
                             m.Title = changeZone.Title;
                             m.ZoneName = changeZone.ZoneName;
                             _zoneService.Update(m);
+
                         }
                     });
-                    zones.Where(m => item.Zones.All(n => n.ID != m.ID)).Each(m => _zoneService.Remove(m.ID));
+                    zones.Where(m => item.Zones.All(n => n.ID != m.ID)).Each(m =>
+                    {
+                        _zoneService.Remove(m.ID);
+                        _auditTrailService.AuditDelete<PageEntity>(m.PageId, _localize.Get("Zone"), m.ZoneName);
+                    });
                 }
                 if (item.Html != null)
                 {
@@ -120,29 +133,35 @@ namespace ZKEACMS.Layout
             {
                 if (item.Zones != null)
                 {
-                    var zones = _zoneService.Get(m => m.LayoutId == item.ID);
+                    var zones = _zoneService.GetByLayoutId(item.ID);
 
                     item.Zones.Where(m => zones.All(n => n.ID != m.ID)).Each(m =>
                     {
                         m.LayoutId = item.ID;
                         _zoneService.Add(m);
+                        _auditTrailService.AuditCreate<LayoutEntity>(m.LayoutId, _localize.Get("Zone"), m.ZoneName);
                     });
                     zones.Each(m =>
                     {
                         var changeZone = item.Zones.FirstOrDefault(z => z.ID == m.ID);
                         if (changeZone != null)
                         {
+                            _auditTrailService.AuditUpdate<LayoutEntity>(m.LayoutId, _localize.Get("Zone"), m.ZoneName, changeZone.ZoneName);
                             m.LayoutId = item.ID;
                             m.Title = changeZone.Title;
                             m.ZoneName = changeZone.ZoneName;
                             _zoneService.Update(m);
                         }
                     });
-                    zones.Where(m => item.Zones.All(n => n.ID != m.ID)).Each(m => _zoneService.Remove(m.ID));
+                    zones.Where(m => item.Zones.All(n => n.ID != m.ID)).Each(m =>
+                    {
+                        _zoneService.Remove(m.ID);
+                        _auditTrailService.AuditDelete<LayoutEntity>(m.LayoutId, _localize.Get("Zone"), m.ZoneName);
+                    });
                 }
                 if (item.Html != null)
                 {
-                    _layoutHtmlService.Remove(m => m.LayoutId == item.ID);
+                    _layoutHtmlService.Remove(m => m.LayoutId == item.ID && m.PageId == null);
                     item.Html.Each(m =>
                     {
                         m.LayoutId = item.ID;
@@ -150,13 +169,20 @@ namespace ZKEACMS.Layout
                     });
                 }
             }
-
-
+            _zoneService.ClearCache();
+            _layoutHtmlService.ClearCache();
+            MarkChanged(item);
         }
         public override ErrorOr<LayoutEntity> Update(LayoutEntity item)
         {
+            var oldItem = Get(item.ID);
             MarkChanged(item);
-            return base.Update(item);
+            var result = base.Update(item);
+            if (result.IsSuccess)
+            {
+                _auditTrailService.AuditUpdate(oldItem, item);
+            }
+            return result;
         }
         public override ErrorOr<LayoutEntity> UpdateRange(params LayoutEntity[] items)
         {

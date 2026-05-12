@@ -12,7 +12,7 @@ namespace EasyFrameWork.Test
         [TestMethod]
         public void TestCombine()
         {
-            Assert.IsTrue(Helper.Url.Combine("home", "index") == "~/home/index");
+            Assert.AreEqual("~/home/index", Helper.Url.Combine("home", "index"));
         }
         [TestMethod]
         public void TestContainsScheme()
@@ -25,16 +25,16 @@ namespace EasyFrameWork.Test
         [TestMethod]
         public void TestToVirtualPath()
         {
-            Assert.IsTrue(Helper.Url.ToVirtualPath("home/index") == "~/home/index");
-            Assert.IsTrue(Helper.Url.ToVirtualPath("/home/index") == "~/home/index");
-            Assert.IsTrue(Helper.Url.ToVirtualPath("~/home/index") == "~/home/index");
+            Assert.AreEqual("~/home/index", Helper.Url.ToVirtualPath("home/index"));
+            Assert.AreEqual("~/home/index", Helper.Url.ToVirtualPath("/home/index"));
+            Assert.AreEqual("~/home/index", Helper.Url.ToVirtualPath("~/home/index"));
         }
         [TestMethod]
         public void TestToAbsolutePath()
         {
-            Assert.IsTrue(Helper.Url.ToAbsolutePath("home/index") == "/home/index");
-            Assert.IsTrue(Helper.Url.ToAbsolutePath("/home/index") == "/home/index");
-            Assert.IsTrue(Helper.Url.ToAbsolutePath("~/home/index") == "/home/index");
+            Assert.AreEqual("/home/index", Helper.Url.ToAbsolutePath("home/index"));
+            Assert.AreEqual("/home/index", Helper.Url.ToAbsolutePath("/home/index"));
+            Assert.AreEqual("/home/index", Helper.Url.ToAbsolutePath("~/home/index"));
         }
     }
 }

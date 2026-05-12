@@ -11,6 +11,7 @@ namespace ZKEACMS.Layout
     public interface ILayoutHtmlService : IService<LayoutHtml>
     {
         IEnumerable<LayoutHtml> GetByPage(PageEntity page);
+        IEnumerable<LayoutHtml> GetByPageId(string pageId);
         IEnumerable<LayoutHtml> GetByLayoutID(string layoutId);
         void RemoveCache(string pageId);
         void ClearCache();

@@ -701,6 +701,7 @@ NavigationEntity@DisplayOrder: 排序
 NavigationEntity@Html: HTML内容
 NavigationEntity@IsMobile: 手机一级导航
 NavigationEntity@Title: 标题
+NavigationEntity@ParentId: 父级导航
 NavigationWidget@AlignClass: 对齐
 NavigationWidget@CustomerClass: 契合度
 NavigationWidget@CustomStyle: 契合度
@@ -1086,6 +1087,7 @@ SectionGroup@Order: 排序
 SectionGroup@PartialView: 显示模板
 SectionGroup@PercentWidth: 栅格列
 SectionGroup@Title: 标题
+SectionGroup@SectionContents: 内容
 SectionWidget@ExtendFields: 扩展属性
 SectionWidget@IsHorizontal: 水平分组
 SectionWidget@IsTemplate: 保存为模板
@@ -1096,6 +1098,7 @@ SectionWidget@Position: 排序
 SectionWidget@SectionTitle: 标题
 SectionWidget@Thumbnail: 缩略图
 SectionWidget@Title: 标题
+SectionWidget@Groups: 组
 Secure Payment: 安全支付
 Security: 安全
 Select: 选择
@@ -1543,3 +1546,11 @@ Video(Embed): 视频（嵌入）
 Name already exists: 名称已存在
 Please upload video or input video code: 请上传视频或者输入视频代码
 Deleted: 已删除
+Change History: 修改历史
+Old Value: 旧值
+New Value: 新值
+Selected: 已选择
+RuleExpression: 规则表达式
+Widget: 组件
+ResetLayoutConfirm: 是否要重置布局？重置后将丢失当前布局的修改。
+Permission: 权限

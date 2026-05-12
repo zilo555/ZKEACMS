@@ -15,10 +15,6 @@ namespace ZKEACMS.SpiderLog.Service
 {
     public class SpiderLogData : PluginData<SpiderLogPlug>, ISpiderLogData
     {
-        public SpiderLogData(ILogger<SpiderLogPlug> logger) : base(logger)
-        {
-        }
-
         public void WriteLog(SearchEngineVisitLog visitLog)
         {
             var collection = GetCollection<SearchEngineVisitLog>(visitLog.Name);

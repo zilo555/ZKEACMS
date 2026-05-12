@@ -110,6 +110,7 @@ new List<string>{"col-xs-4 col-sm-2", "col-xs-4 col-sm-2", "col-xs-4 col-sm-2", 
                 }
             }
             <input id="copy-widget" type="button" class="btn btn-warning" data-id="@Model.ID" value="@L("Copy")" />
+            @Html.ChangeHistoryBtn(Model)
             <input type="button" class="btn btn-default cancel" value="@L("Cancel")" />
         </div>
 
@@ -217,14 +218,14 @@ new List<string>{"col-xs-4 col-sm-2", "col-xs-4 col-sm-2", "col-xs-4 col-sm-2", 
                 groups[i].GroupName = "@L("Group")" + (i + 1);
                 groups[i].PartialView = "SectionTemplate.Default";
                 groups[i].Order = (i + 1);
-                groups[i].ID = $(".section-group:eq(" + i + ")").data("id") || '';
+                groups[i].ID = $(".section-group:eq(" + i + ")").attr("data-id") || '';
             });
             var sGroup = $(".section-group");
             if (groups.length !== sGroup.size() && sGroup.size() > 0) {
                 groups = [];
                 sGroup.each(function (i) {
                     groups[i] = {};
-                    groups[i].ID = $(this).data("id");
+                    groups[i].ID = $(this).attr("data-id") || '';
                     groups[i].PercentWidth = "";
                 });
             }

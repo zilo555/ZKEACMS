@@ -39,7 +39,7 @@ namespace ZKEACMS.Test.Event
         {
             Assert.IsNotNull(entity);
             Assert.IsNotNull(e);
-            Assert.IsTrue(e.Name == "Test");
+            Assert.AreEqual("Test", e.Name);
         }
     }
 }

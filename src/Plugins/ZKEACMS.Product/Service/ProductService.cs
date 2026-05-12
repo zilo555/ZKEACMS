@@ -13,6 +13,7 @@ using Easy.Extend;
 using Easy.Constant;
 using System.Linq.Expressions;
 using ZKEACMS.Event;
+using Easy.AuditTrail;
 
 namespace ZKEACMS.Product.Service
 {
@@ -23,19 +24,22 @@ namespace ZKEACMS.Product.Service
         private readonly IProductImageService _productImageService;
         private readonly ILocalize _localize;
         private readonly IEventManager _eventManager;
+        private readonly IAuditTrailService _auditTrailService;
         public ProductService(IApplicationContext applicationContext,
             IProductTagService productTagService,
             IProductCategoryTagService productCategoryTagService,
             IProductImageService productImageService,
             ILocalize localize,
             IEventManager eventManager,
-            CMSDbContext dbContext) : base(applicationContext, dbContext)
+            CMSDbContext dbContext,
+            IAuditTrailService auditTrailService) : base(applicationContext, dbContext)
         {
             _productTagService = productTagService;
             _productCategoryTagService = productCategoryTagService;
             _productImageService = productImageService;
             _localize = localize;
             _eventManager = eventManager;
+            _auditTrailService = auditTrailService;
         }
 
         public void Publish(int ID)
@@ -109,6 +113,7 @@ namespace ZKEACMS.Product.Service
             _eventManager.Trigger(Events.OnProductUpdating, item);
             BeginTransaction(() =>
             {
+                var oldProduct = Get(item.ID);
                 result = base.Update(item);
                 if (!result.HasError)
                 {
@@ -132,6 +137,10 @@ namespace ZKEACMS.Product.Service
                         });
                         _productImageService.EndBulkSave();
                     }
+                    var newProduct = Get(item.ID);
+                    oldProduct.ProductTags=oldProduct.ProductTags.Where(m=>m.Selected).ToList();
+                    newProduct.ProductTags = newProduct.ProductTags.Where(m => m.Selected).ToList();
+                    _auditTrailService.AuditUpdate(oldProduct, newProduct);
                 }
             });
             _eventManager.Trigger(Events.OnProductUpdated, item);
@@ -201,9 +210,13 @@ namespace ZKEACMS.Product.Service
         public void Publish(ProductEntity product)
         {
             product.IsPublish = true;
-            product.PublishDate = DateTime.Now;
+            if (product.PublishDate == null)
+            {
+                product.PublishDate = DateTime.Now;
+            }            
             if (product.ID > 0)
             {
+                _auditTrailService.AuditUpdate(Get(product.ID), product);
                 base.Update(product);
             }
             _eventManager.Trigger(Events.OnProductPublished, product);

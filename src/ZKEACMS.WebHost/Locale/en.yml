@@ -402,6 +402,7 @@ NavigationEntity@IsMobile: Is Mobile
 NavigationEntity@LastUpdateByName: Last Update By Name
 NavigationEntity@Title: Title
 NavigationEntity@Url: Url
+NavigationEntity@ParentId: Parent
 NavigationWidget@AlignClass: Align Class
 NavigationWidget@AssemblyName: Assembly Name
 NavigationWidget@CreatebyName: Createby Name
@@ -646,6 +647,7 @@ SectionGroup@Order: Order
 SectionGroup@PartialView: Partial View
 SectionGroup@PercentWidth: Percent Width
 SectionGroup@Title: Title
+SectionGroup@SectionContents: Content
 SectionWidget@CreatebyName: Createby Name
 SectionWidget@ExtendFields: Extend Fields
 SectionWidget@IsHorizontal: Is Horizontal
@@ -658,6 +660,7 @@ SectionWidget@Position: Position
 SectionWidget@SectionTitle: Section Title
 SectionWidget@Thumbnail: Thumbnail
 SectionWidget@Title: Title
+SectionWidget@Groups: Group
 ShowCaseWidget@CaseItems: Case Items
 ShowCaseWidget@Header: Header
 ShowCaseWidget@MoreLink: More Link
@@ -835,3 +838,4 @@ ZoneEntity@Title: Title
 ZoneID: Zone
 EventAction: Event Action
 ShippingOption@Title: Name
+ResetLayoutConfirm: Are you sure you want to reset the layout? All the changes you made to the layout will be lost.

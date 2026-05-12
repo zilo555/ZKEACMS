@@ -702,6 +702,7 @@ NavigationEntity@DisplayOrder: 排序
 NavigationEntity@Html: HTML內容
 NavigationEntity@IsMobile: 手機一級導航
 NavigationEntity@Title: 標題
+NavigationEntity@ParentId: 父級導航
 NavigationWidget@AlignClass: 對齊
 NavigationWidget@CustomerClass: 契合度
 NavigationWidget@CustomStyle: 契合度
@@ -1087,6 +1088,7 @@ SectionGroup@Order: 排序
 SectionGroup@PartialView: 顯示模闆
 SectionGroup@PercentWidth: 柵格列
 SectionGroup@Title: 標題
+SectionGroup@SectionContents: 內容
 SectionWidget@ExtendFields: 擴展屬性
 SectionWidget@IsHorizontal: 水平分組
 SectionWidget@IsTemplate: 保存為模闆
@@ -1097,6 +1099,7 @@ SectionWidget@Position: 排序
 SectionWidget@SectionTitle: 標題
 SectionWidget@Thumbnail: 縮略圖
 SectionWidget@Title: 標題
+SectionWidget@Groups: 組
 Secure Payment: 安全支付
 Security: 安全
 Select: 選擇
@@ -1544,3 +1547,11 @@ Video(Embed): 視頻（嵌入）
 Name already exists: 名稱已存在
 Please upload video or input video code: 請上傳視頻或者輸入視頻程式碼
 Deleted: 已删除
+Change History: 修改歴史
+Old Value: 舊值
+New Value: 新值
+Selected: 已選擇
+RuleExpression: 規則表達式
+Widget: 組件
+ResetLayoutConfirm: 是否要重置佈局？重置後佈局將回到初始狀態。
+Permission: 權限

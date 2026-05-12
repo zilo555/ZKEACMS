@@ -60,6 +60,11 @@ namespace Easy
             get { return _ruleViolations.Any(m => m is Error); }
         }
 
+        public bool IsSuccess
+        {
+            get { return !HasError; }
+        }
+
         public IEnumerable<Error> Errors
         {
             get
@@ -139,22 +144,29 @@ namespace Easy
             }
         }
 
+        public static implicit operator ErrorOr(Exception exception)
+        {
+            var result = new ErrorOr();
+            result.AddError(new Error(exception));
+            return result;
+        }
+
         public static implicit operator ErrorOr(Error error)
         {
             var result = new ErrorOr();
-            result._ruleViolations.Add(error);
+            result.AddError(error);
             return result;
         }
         public static implicit operator ErrorOr(Warning warning)
         {
             var result = new ErrorOr();
-            result._ruleViolations.Add(warning);
+            result.AddWarning(warning);
             return result;
         }
         public static implicit operator ErrorOr(Info info)
         {
             var result = new ErrorOr();
-            result._ruleViolations.Add(info);
+            result.AddInfo(info);
             return result;
         }
     }
@@ -171,18 +183,28 @@ namespace Easy
         {
             return new ErrorOr<T>(result);
         }
+
+        public static implicit operator ErrorOr<T>(Exception exception)
+        {
+            var result = new ErrorOr<T>();
+            result.AddError(new Error(exception));
+            return result;
+        }
+
         public static implicit operator ErrorOr<T>(Error error)
         {
             var result = new ErrorOr<T>();
             result.AddError(error);
             return result;
         }
+
         public static implicit operator ErrorOr<T>(Warning warning)
         {
             var result = new ErrorOr<T>();
             result.AddWarning(warning);
             return result;
         }
+
         public static implicit operator ErrorOr<T>(Info info)
         {
             var result = new ErrorOr<T>();

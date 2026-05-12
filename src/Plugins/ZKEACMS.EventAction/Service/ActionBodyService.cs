@@ -3,6 +3,7 @@
  * http://www.zkea.net/licenses */
 
 using Easy;
+using Easy.AuditTrail;
 using Easy.Constant;
 using Easy.Extend;
 using Easy.RepositoryPattern;
@@ -25,8 +26,12 @@ namespace ZKEACMS.EventAction.Service
 
         }
 
-        public ActionBodyService(IApplicationContext applicationContext, CMSDbContext dbContext) : base(applicationContext, dbContext)
+        private readonly IAuditTrailService _auditTrailService;
+        public ActionBodyService(IApplicationContext applicationContext,
+            CMSDbContext dbContext,
+            IAuditTrailService auditTrailService) : base(applicationContext, dbContext)
         {
+            _auditTrailService = auditTrailService;
         }
 
         public override ErrorOr<ActionBody> Add(ActionBody item)
@@ -59,7 +64,13 @@ namespace ZKEACMS.EventAction.Service
             {
                 _templates.AddOrUpdate(item.ID, templateResult, (id, old) => templateResult);
             }
-            return base.Update(item);
+            var oldItem = Get(item.ID);
+            var saveResult = base.Update(item);
+            if (saveResult.IsSuccess)
+            {
+                _auditTrailService.AuditUpdate(oldItem, item);
+            }
+            return saveResult;
         }
 
         public string RenderBody(int ID, object model)

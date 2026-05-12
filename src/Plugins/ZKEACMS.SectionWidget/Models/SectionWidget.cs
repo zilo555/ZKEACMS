@@ -9,6 +9,7 @@ using ZKEACMS.Widget;
 using ZKEACMS.MetaData;
 using System.ComponentModel.DataAnnotations.Schema;
 using Easy.RepositoryPattern;
+using Easy.AuditTrail.Attributes;
 
 namespace ZKEACMS.SectionWidget.Models
 {
@@ -18,7 +19,7 @@ namespace ZKEACMS.SectionWidget.Models
         public string SectionTitle { get; set; }
         [NotMapped]
         public IEnumerable<SectionGroup> Groups { get; set; }
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public SectionTemplate Template { get; set; }
     }
 

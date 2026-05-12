@@ -130,6 +130,17 @@ $(function () {
         });
     }).on("submit", "form", function () {
         Easy.Block();
+    }).on("click", ".open-dialog", function () {
+        var obj = $(this);
+        window.top.Easy.ShowUrlWindow({
+            url: obj.data("url"),
+            onLoad: function (box) {
+                $(this.document).find("#confirm").click(function () {                    
+                    box.close();
+                });
+            }
+        });
+        return false;
     });
     $(".form-group select#ZoneId,.form-group select.select").on("mousedown", false);
     $(".form-group select#ZoneId").each(function () {

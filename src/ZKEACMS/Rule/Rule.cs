@@ -11,6 +11,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 using Easy.Extend;
+using Easy.AuditTrail.Attributes;
 
 namespace ZKEACMS.Rule
 {
@@ -25,14 +26,17 @@ namespace ZKEACMS.Rule
         }
         [Key]
         public int RuleID { get; set; }
+
         public string ZoneName { get; set; }
         public string RuleExpression { get; set; }
+
+        [AuditIgnore]
         public string RuleItems { get; set; }
-        [NotMapped]
+
+        [NotMapped, AuditIgnore]
         public List<RuleItem> RuleItemList { get; set; }
 
-
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public HashSet<string> ZoneNames
         {
             get

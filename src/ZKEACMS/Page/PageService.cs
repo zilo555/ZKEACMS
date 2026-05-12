@@ -3,6 +3,7 @@
  * http://www.zkea.net/licenses */
 
 using Easy;
+using Easy.AuditTrail;
 using Easy.Extend;
 using Easy.RepositoryPattern;
 using Easy.Serializer;
@@ -28,6 +29,7 @@ namespace ZKEACMS.Page
         private readonly ILayoutHtmlService _layoutHtmlService;
         private readonly IEventManager _eventManager;
         private readonly ILocalize _localize;
+        private readonly IAuditTrailService _auditTrailService;
         private Dictionary<string, IEnumerable<PageEntity>> _cachedPage;
         public PageService(IWidgetBasePartService widgetService,
             IApplicationContext applicationContext,
@@ -36,7 +38,8 @@ namespace ZKEACMS.Page
             ILayoutHtmlService layoutHtmlService,
             ILocalize localize,
             CMSDbContext dbContext,
-            IEventManager eventManager)
+            IEventManager eventManager,
+            IAuditTrailService auditTrailService)
             : base(applicationContext, dbContext)
         {
             _widgetService = widgetService;
@@ -46,6 +49,7 @@ namespace ZKEACMS.Page
             _eventManager = eventManager;
             _localize = localize;
             _cachedPage = new Dictionary<string, IEnumerable<PageEntity>>(StringComparer.OrdinalIgnoreCase);
+            _auditTrailService = auditTrailService;
         }
 
         private string FormatPath(string path)
@@ -102,10 +106,17 @@ namespace ZKEACMS.Page
         }
         private void SerializeAssets(PageEntity page)
         {
-            if (page != null)
+            if (page == null) return;
+
+            if (page.Styles != null)
             {
-                page.Style = JsonConverter.Serialize(page.Styles.RemoveDeletedItems().Select(m => m.Url));
-                page.Script = JsonConverter.Serialize(page.Scripts.RemoveDeletedItems().Select(m => m.Url));
+                page.Styles = page.Styles.RemoveDeletedItems().ToList();
+                page.Style = JsonConverter.Serialize(page.Styles.Select(m => m.Url));
+            }
+            if (page.Scripts != null)
+            {
+                page.Scripts = page.Scripts.RemoveDeletedItems().ToList();
+                page.Script = JsonConverter.Serialize(page.Scripts.Select(m => m.Url));
             }
         }
 
@@ -116,8 +127,8 @@ namespace ZKEACMS.Page
 
             item.IsPublishedPage = true;
             item.PublishDate = DateTime.Now;
-            var zones = _zoneService.GetByPage(item);
-            var layoutHtmls = _layoutHtmlService.GetByPage(item);
+            var zones = _zoneService.GetByPageId(item.ID);
+            var layoutHtmls = _layoutHtmlService.GetByPageId(item.ID);
             var widgets = _widgetService.GetByPageId(item.ID);
             Add(item);
             zones.Each(m =>
@@ -130,6 +141,7 @@ namespace ZKEACMS.Page
                 m.PageId = item.ID;
                 _layoutHtmlService.Add(m);
             });
+            var pageContent = new PageContent();
             foreach (var widget in widgets)
             {
                 if (widget.Status == (int)WidgetStatus.Hidden) continue;
@@ -141,6 +153,7 @@ namespace ZKEACMS.Page
                         var fullFillWidget = widgetService.GetWidget(widget);
                         fullFillWidget.PageId = item.ID;
                         widgetService.Publish(fullFillWidget);
+                        pageContent.Widgets.Add(fullFillWidget);
                     }
                     else if (widget.Status == (int)WidgetStatus.Deleted)
                     {
@@ -148,6 +161,8 @@ namespace ZKEACMS.Page
                     }
                 }
             }
+            item.Content = JsonConverter.SerializePolymorphic(pageContent);
+            base.Update(item);
         }
 
         public override DbSet<PageEntity> CurrentDbSet
@@ -197,10 +212,16 @@ namespace ZKEACMS.Page
             _eventManager.Trigger(Events.OnPageUpdating, item);
             item.IsPublish = false;
             SerializeAssets(item);
+            var oldPage = Get(item.ID);
+            if (oldPage.LayoutId != item.LayoutId)
+            {
+                ResetLayout(item.ID);
+            }
             var result = base.Update(item);
             if (!result.HasError)
             {
                 _eventManager.Trigger(Events.OnPageUpdated, item);
+                _auditTrailService.AuditUpdate(oldPage, item);
             }
             return result;
         }
@@ -248,26 +269,28 @@ namespace ZKEACMS.Page
             {
                 if (page.IsPublishedPage)
                 {
-                    var refPage = Get(page.ReferencePageID);
-                    refPage.IsPublish = false;
-                    Update(refPage);
+                    var editingPageId = page.ReferencePageID;
+                    var editingPage = Get(editingPageId);
+                    editingPage.IsPublish = false;
+                    Update(editingPage);
                     page.Description = _localize.Get("Revert from version: {0:g}").FormatWith(page.PublishDate);
                     PublishAsNew(page);
+                    _auditTrailService.AuditCreate<PageEntity>(editingPageId, _localize.Get("Revert"), page.Description);
                     if (!RetainLatest)
                     {//清空当前的所有修改
 
-                        _layoutHtmlService.Remove(m => m.PageId == page.ReferencePageID);
-                        _zoneService.Remove(m => m.PageId == page.ReferencePageID);
-                        _layoutHtmlService.GetByPage(page).Each(m =>
+                        _layoutHtmlService.Remove(m => m.PageId == editingPageId);
+                        _zoneService.Remove(m => m.PageId == editingPageId);
+                        _layoutHtmlService.GetByPageId(page.ID).Each(m =>
                         {
                             _layoutHtmlService.Add(new LayoutHtml { LayoutId = m.LayoutId, Html = m.Html, PageId = page.ReferencePageID });
                         });
-                        _zoneService.GetByPage(page).Each(m =>
+                        _zoneService.GetByPageId(page.ID).Each(m =>
                         {
-                            m.PageId = page.ReferencePageID;
+                            m.PageId = editingPageId;
                             _zoneService.Add(m);
                         });
-                        _widgetService.GetByPageId(page.ReferencePageID).Each(m =>
+                        _widgetService.GetByPageId(editingPageId).Each(m =>
                         {
                             var widgetService = _widgetActivator.Create(m);
                             widgetService.DeleteWidget(m.ID);
@@ -276,7 +299,7 @@ namespace ZKEACMS.Page
                         {
                             var widgetService = _widgetActivator.Create(m);
                             m = widgetService.GetWidget(m);
-                            m.PageId = page.ReferencePageID;
+                            m.PageId = editingPageId;
                             widgetService.Publish(m);
                         });
                     }
@@ -304,7 +327,7 @@ namespace ZKEACMS.Page
                     }
                     allPages.AddRange(deletePages);
                     var allPageIds = allPages.Select(n => n.ID).ToArray();
-                    allPages.AddRange(Get(m => allPageIds.Contains(m.ReferencePageID)));
+                    allPages.AddRange(Get(m => !allPageIds.Contains(m.ID) && allPageIds.Contains(m.ReferencePageID)));
                     allPageIds = allPages.Select(n => n.ID).ToArray();
                     var widgets = _widgetService.Get(m => allPageIds.Contains(m.PageId));
                     widgets.Each(m =>
@@ -318,9 +341,9 @@ namespace ZKEACMS.Page
                     _layoutHtmlService.Remove(m => allPageIds.Contains(m.PageId));
                     _zoneService.Remove(m => allPageIds.Contains(m.PageId));
 
-                    allPages.Each(p => _eventManager.Trigger(Events.OnPageDeleted, p));
+                    CurrentDbSet.Where(m => allPageIds.Contains(m.ID)).ExecuteDelete();
 
-                    base.RemoveRange(allPages.ToArray());
+                    allPages.Each(p => _eventManager.Trigger(Events.OnPageDeleted, p));
                 }
             });
         }
@@ -434,6 +457,13 @@ namespace ZKEACMS.Page
                 _cachedPage.Add(formatedPath, pages);
             }
             return pages.Any();
+        }
+
+        public void ResetLayout(string pageId)
+        {
+            _auditTrailService.AuditDelete<PageEntity>(pageId, _localize.Get("Layout"), _localize.Get("Layout"));
+            _zoneService.Remove(m => m.PageId == pageId);
+            _layoutHtmlService.Remove(m => m.PageId == pageId);
         }
     }
 }

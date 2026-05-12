@@ -70,6 +70,11 @@ namespace ZKEACMS.Widget
                     factory.AddExpirationToken(_signals.When(page.ID));
                     factory.AddExpirationToken(_signals.When(page.ReferencePageID));
                     factory.AddExpirationToken(_signals.When(CacheSignals.PageWidgetChanged));
+
+                    if (page.Content.IsNotNullAndWhiteSpace())
+                    {
+                        return JsonConverter.DeserializePolymorphic<PageContent>(page.Content).Widgets;
+                    }
                     return getPageWidgets(page);
                 });
             }

@@ -8,12 +8,13 @@ using Easy.Mvc;
 using Easy.Mvc.Authorize;
 using Easy.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using ZKEACMS.Product.ActionFilter;
 using ZKEACMS.Product.Models;
 using ZKEACMS.Product.Service;
-using Microsoft.Extensions.DependencyInjection;
 using ZKEACMS.Product.ViewModel;
 
 namespace ZKEACMS.Product.Controllers
@@ -59,11 +60,15 @@ namespace ZKEACMS.Product.Controllers
         [HttpPost, DefaultAuthorize(Policy = PermissionKeys.ManageProduct)]
         public override IActionResult Edit(ProductEntity entity)
         {
-            var result = base.Edit(entity);
             if (entity.ActionType.HasFlag(ActionType.Publish) && _authorizer.Authorize(PermissionKeys.PublishProduct))
             {
-                Service.Publish(entity);
+                entity.IsPublish = true;
+                if (entity.PublishDate == null)
+                {
+                    entity.PublishDate = DateTime.Now;
+                }
             }
+            var result = base.Edit(entity);
             if (Request.Query["ReturnUrl"].Count > 0)
             {
                 return Redirect(Request.Query["ReturnUrl"]);

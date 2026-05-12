@@ -7,6 +7,7 @@ using Easy.MetaData;
 using System.ComponentModel.DataAnnotations.Schema;
 using ZKEACMS.Extend;
 using Easy.RepositoryPattern;
+using Easy.AuditTrail.Attributes;
 
 namespace ZKEACMS.SectionWidget.Models
 {
@@ -15,6 +16,7 @@ namespace ZKEACMS.SectionWidget.Models
     {
         public string ImageSrc { get; set; }
         public string ImageAlt { get; set; }
+        [AuditTitle]
         public string ImageTitle { get; set; }
         public string Href { get; set; }
         public int? Width { get; set; }

@@ -14,20 +14,22 @@ using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel.DataAnnotations;
 using Easy;
 using Easy.RepositoryPattern;
+using Easy.AuditTrail.Attributes;
 
 namespace ZKEACMS.SectionWidget.Models
 {
     [DataTable("SectionGroup")]
     public class SectionGroup : EditorEntity
     {
-        [Key]
+        [Key, AuditKey]
         public string ID { get; set; }
+        [AuditTitle]
         public string GroupName { get; set; }
         public string SectionWidgetId { get; set; }
         public string PartialView { get; set; }
         public int? Order { get; set; }
         public string PercentWidth { get; set; }
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public bool IsLoadDefaultData { get; set; }
         [NotMapped]
         public IEnumerable<SectionContent> SectionContents { get; set; }
@@ -49,7 +51,7 @@ namespace ZKEACMS.SectionWidget.Models
             }
             return null;
         }
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public SectionContentTitle SectionTitle
         {
             get
@@ -57,7 +59,7 @@ namespace ZKEACMS.SectionWidget.Models
                 return GetContent<SectionContentTitle>(SectionContentBase.Types.Title);
             }
         }
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public IEnumerable<SectionContentTitle> SectionTitles
         {
             get
@@ -65,7 +67,7 @@ namespace ZKEACMS.SectionWidget.Models
                 return GetContents<SectionContentTitle>(SectionContentBase.Types.Title);
             }
         }
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public SectionContentCallToAction CallToAction
         {
             get
@@ -73,7 +75,7 @@ namespace ZKEACMS.SectionWidget.Models
                 return GetContent<SectionContentCallToAction>(SectionContentBase.Types.CallToAction);
             }
         }
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public IEnumerable<SectionContentCallToAction> CallToActions
         {
             get
@@ -81,7 +83,7 @@ namespace ZKEACMS.SectionWidget.Models
                 return GetContents<SectionContentCallToAction>(SectionContentBase.Types.CallToAction);
             }
         }
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public SectionContentImage SectionImage
         {
             get
@@ -89,7 +91,7 @@ namespace ZKEACMS.SectionWidget.Models
                 return GetContent<SectionContentImage>(SectionContentBase.Types.Image);
             }
         }
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public IEnumerable<SectionContentImage> SectionImages
         {
             get
@@ -97,7 +99,7 @@ namespace ZKEACMS.SectionWidget.Models
                 return GetContents<SectionContentImage>(SectionContentBase.Types.Image);
             }
         }
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public SectionContentParagraph Paragraph
         {
             get
@@ -105,7 +107,7 @@ namespace ZKEACMS.SectionWidget.Models
                 return GetContent<SectionContentParagraph>(SectionContentBase.Types.Paragraph);
             }
         }
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public IEnumerable<SectionContentParagraph> Paragraphs
         {
             get
@@ -114,7 +116,7 @@ namespace ZKEACMS.SectionWidget.Models
             }
         }
 
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public SectionContentVideo Video
         {
             get
@@ -123,7 +125,7 @@ namespace ZKEACMS.SectionWidget.Models
             }
         }
 
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public IEnumerable<SectionContentVideo> Videos
         {
             get
@@ -132,11 +134,11 @@ namespace ZKEACMS.SectionWidget.Models
             }
         }
 
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public override string Description { get; set; }
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public override int? Status { get; set; }
-        [NotMapped]
+        [NotMapped, AuditIgnore]
         public override string Title { get; set; }
     }
 

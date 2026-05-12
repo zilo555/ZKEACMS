@@ -12,17 +12,23 @@ using Easy.Extend;
 using Easy.RepositoryPattern;
 using Easy;
 using Microsoft.EntityFrameworkCore;
+using Easy.AuditTrail;
 
 namespace ZKEACMS.Common.Service
 {
     public class CarouselService : ServiceBase<CarouselEntity, CMSDbContext>, ICarouselService
     {
         private readonly ICarouselItemService _carouselItemService;
+        private readonly IAuditTrailService _auditTrailService;
 
-        public CarouselService(ICarouselItemService carouselItemService, IApplicationContext applicationContext, CMSDbContext dbContext)
+        public CarouselService(ICarouselItemService carouselItemService,
+            IApplicationContext applicationContext,
+            CMSDbContext dbContext,
+            IAuditTrailService auditTrailService)
             : base(applicationContext, dbContext)
         {
             _carouselItemService = carouselItemService;
+            _auditTrailService = auditTrailService;
         }
 
         public override DbSet<CarouselEntity> CurrentDbSet => DbContext.Carousel;
@@ -82,6 +88,7 @@ namespace ZKEACMS.Common.Service
         }
         public override ErrorOr<CarouselEntity> Update(CarouselEntity item)
         {
+            var old = Get(item.ID);
             var result = base.Update(item);
             if (result.HasError)
             {
@@ -97,6 +104,7 @@ namespace ZKEACMS.Common.Service
                 });
                 _carouselItemService.EndBulkSave();
             }
+            _auditTrailService.AuditUpdate(old, Get(item.ID));
             return result;
         }
         public override ErrorOr<CarouselEntity> UpdateRange(params CarouselEntity[] items)

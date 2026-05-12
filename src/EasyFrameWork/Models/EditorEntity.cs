@@ -2,6 +2,7 @@
  * Copyright (c) ZKEASOFT. All rights reserved. 
  * http://www.zkea.net/licenses */
 
+using Easy.AuditTrail.Attributes;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -9,41 +10,27 @@ namespace Easy.Models
 {
     public class EditorEntity
     {
-
+        [AuditTitle]
         public virtual string Title { get; set; }
-        /// <summary>
-        /// 说明
-        /// </summary>
+
         public virtual string Description { get; set; }
-        /// <summary>
-        /// 是否通过
-        /// </summary>
+
+        [AuditRecordStatus]
         public virtual int? Status { get; set; }
-        /// <summary>
-        /// 创建人ID
-        /// </summary>
+        [AuditIgnore]
         public virtual string CreateBy { get; set; }
-        /// <summary>
-        /// 创建人
-        /// </summary>
+        [AuditIgnore]
         public virtual string CreatebyName { get; set; }
-        /// <summary>
-        /// 创建日期
-        /// </summary>
+        [AuditIgnore]
         public virtual DateTime? CreateDate { get; set; }
-        /// <summary>
-        /// 修改人ID
-        /// </summary>
+        [AuditIgnore]
         public virtual string LastUpdateBy { get; set; }
-        /// <summary>
-        /// 最后修改人
-        /// </summary>
+        [AuditIgnore]
         public virtual string LastUpdateByName { get; set; }
-        /// <summary>
-        /// 最后更新日期
-        /// </summary>
+        [AuditIgnore]
         public virtual DateTime? LastUpdateDate { get; set; }
-        [NotMapped]
+
+        [NotMapped, AuditIgnore]
         public virtual Constant.ActionType? ActionType { get; set; }
     }
 

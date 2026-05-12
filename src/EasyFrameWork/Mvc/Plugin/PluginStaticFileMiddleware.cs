@@ -57,10 +57,13 @@ namespace Easy.Mvc.Plugin
 
         private Stream GetFileStream(string path)
         {
-            var fileInfo = GetFileInfo(path);
-            if (fileInfo.Exists) return fileInfo.OpenRead();
+            var stream = GetManifestResourceStream(path);
+            if (stream != null) return stream;
 
-            return GetManifestResourceStream(path);
+            var fileInfo = GetFileInfo(path);
+            if (!fileInfo.Exists) return null;
+            
+            return fileInfo.OpenRead();            
         }
 
         private Stream GetManifestResourceStream(string filePath)
@@ -68,7 +71,9 @@ namespace Easy.Mvc.Plugin
             var plugin = _pluginLoader.GetLoadedPlugin(filePath.Split('/')[2]);
             if (plugin == null) return null;
 
-            var resourceName = filePath.Substring($"/{_pluginLoader.GetPluginFolderName()}/".Length).Replace('/', '.');
+            var resourceName = filePath.Substring($"/{_pluginLoader.GetPluginFolderName()}/".Length);
+            resourceName = PluginInfo.FormatResourcePath(resourceName);
+
             if (!plugin.EmbeddedResource.TryGetValue(resourceName, out string actualResourceName)) return null;
 
             return plugin.Assembly.GetManifestResourceStream(actualResourceName);
@@ -106,10 +111,29 @@ namespace Easy.Mvc.Plugin
             string contentType;
             if (_contentTypeProvider.TryGetContentType(context.Request.Path, out contentType))
             {
-                context.Response.ContentType = contentType;
+                if (IsTextContentType(contentType))
+                {
+                    context.Response.ContentType = $"{contentType}; charset=utf-8";
+                }
+                else
+                {
+                    context.Response.ContentType = contentType;
+                }
                 return true;
             }
             return false;
+        }
+
+        private bool IsTextContentType(string contentType)
+        {
+            var textContentTypes = new[]
+            {
+                "text/plain","text/html","text/css",
+                "text/javascript", "application/javascript","application/json",
+                "application/xml", "text/xml","text/csv"
+            };
+
+            return textContentTypes.Any(t => contentType.StartsWith(t, StringComparison.OrdinalIgnoreCase));
         }
 
         private FileInfo GetFileInfo(string path)

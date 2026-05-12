@@ -26,6 +26,7 @@ using Microsoft.AspNetCore.Hosting;
 using Easy.Mvc.Extend;
 using Microsoft.Extensions.Options;
 using ZKEACMS.Zone;
+using ZKEACMS.Layout;
 
 namespace ZKEACMS.Controllers
 {
@@ -194,7 +195,8 @@ namespace ZKEACMS.Controllers
             {
                 return View(widget);
             }
-            _widgetActivator.Create(widget).UpdateWidget(widget);
+            var widgetDriver = _widgetActivator.Create(widget);
+            widgetDriver.UpdateWidget(widget);
             if (!ReturnUrl.IsNullOrEmpty())
             {
                 return Redirect(ReturnUrl);

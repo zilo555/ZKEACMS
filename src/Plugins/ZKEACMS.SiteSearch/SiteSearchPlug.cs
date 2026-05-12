@@ -64,6 +64,7 @@ namespace ZKEACMS.SiteSearch
 
             serviceCollection.AddSingleton(configuration.GetSection("SearchEngines").Get<IEnumerable<SearchEngine>>());
             serviceCollection.ConfigureMetaData<SiteSearchWidget, SiteSearchWidgetMetaData>();
+            serviceCollection.AddAuditValueProvider<SearchEngineAuditValueProvider>();
         }
     }
 }

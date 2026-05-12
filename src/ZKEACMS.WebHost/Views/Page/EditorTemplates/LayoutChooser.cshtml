@@ -2,29 +2,25 @@
 @{
     var page = ViewBag.Page as PageEntity;
     var descriptor = ViewData.ModelMetadata.GetViewDescriptor();
-    IList<LayoutEntity> layouts = null;
-    if (page.ID.IsNullOrWhiteSpace())
+    IList<LayoutEntity> layouts = layouts = layoutService.GetWithFull();
+    LayoutEntity customPageLayout = null;
+    
+    if (page.ID.IsNotNullAndWhiteSpace() && (zoneService.GetByPageId(page.ID).Any() || layoutHtmlService.GetByPageId(page.ID).Any()))
     {
-        layouts = layoutService.GetWithFull();
-    }
-    else
-    {
-        var layout = layoutService.GetByPage(page);
-        var fullLayout = layoutService.Get(layout.ID);
-        if (fullLayout != null)
-        {
-            layout.LayoutName = fullLayout.LayoutName;
-        }
-        layouts = new List<LayoutEntity> { layout };
+        customPageLayout = layoutService.GetByPage(page);
     }
 }
+
 @inject ILayoutService layoutService
+@inject IZoneService zoneService
+@inject ILayoutHtmlService layoutHtmlService
 
 <div class="input-group clearfix">
     @Html.Hidden("", Model, descriptor?.ToHtmlProperties())
-    @foreach (var layout in layouts)
+    @foreach (var layoutItem in layouts)
     {
-        <div class="layout-item pull-left @(layout.ID==Model?"active":"")" data-id="@layout.ID">
+        var layout = customPageLayout?.ID == layoutItem.ID ? customPageLayout : layoutItem;
+        <div class="layout-item pull-left @(layout.ID == Model ? "active" : "")" data-id="@layout.ID">
             @if (layout.LayoutName.IsNotNullAndWhiteSpace())
             {
                 <label class="name">
@@ -46,8 +42,11 @@
                     }
                 }
             }
+            @if (layout == customPageLayout)
+            {
+                <a class="reset-layout name" href="@Url.Action("ResetLayout", new { pageId = page.ID })">@L("Reset")</a>
+            }
         </div>
-
     }
 </div>
 
@@ -59,11 +58,12 @@
                 $("#LayoutId").val($(this).data("id"));
                 $(this).siblings().removeClass("active");
                 $(this).addClass("active");
+            }).on("click",".reset-layout",function(){
+                return confirm("@L("ResetLayoutConfirm")");
             });
             if (!$("#LayoutId").val()) {
                 $(".layout-item:first").click();
             }
         });
     </script>
-
 }

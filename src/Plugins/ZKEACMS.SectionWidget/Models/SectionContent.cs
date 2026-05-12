@@ -8,6 +8,7 @@ using Easy.Models;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using Easy.RepositoryPattern;
+using Easy.AuditTrail.Attributes;
 
 namespace ZKEACMS.SectionWidget.Models
 {
@@ -24,11 +25,12 @@ namespace ZKEACMS.SectionWidget.Models
             Title = 4,
             Video = 5
         }
-        [Key]
+        [Key, AuditKey(Order = 1)]
         public string ID { get; set; }
         public string SectionWidgetId { get; set; }
         public virtual string SectionGroupId { get; set; }
         public virtual int? Order { get; set; }
+        [AuditKey(Order = 0)]
         public abstract int SectionContentType
         {
             get;

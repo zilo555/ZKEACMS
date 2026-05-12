@@ -5,4 +5,7 @@
 		<PackageTags>CMS.Product</PackageTags>
 		<Description>Product plugin for ZKEACMS</Description>
 	</PropertyGroup>
+	<ItemGroup>
+	  <EmbeddedResource Remove="Service\ProductCategoryAuditValueProvider.cs" />
+	</ItemGroup>
 </Project>

@@ -1,4 +1,5 @@
 /* http://www.zkea.net/ Copyright 2016 ZKEASOFT http://www.zkea.net/licenses */
+using Easy.AuditTrail;
 using Easy.Constant;
 using Easy.Extend;
 using Easy.Modules.User.Models;
@@ -15,12 +16,15 @@ namespace Easy.Modules.User.Service
     public class UserService : ServiceBase<UserEntity, EasyDbContext>, IUserService
     {
         private ILocalize _localize;
+        private IAuditTrailService _auditTrailService;
         public UserService(IApplicationContext applicationContext,
             ILocalize localize,
-            EasyDbContext easyDbContext)
+            EasyDbContext easyDbContext,
+            IAuditTrailService auditTrailService)
             : base(applicationContext, easyDbContext)
         {
             _localize = localize;
+            _auditTrailService = auditTrailService;
         }
         public override DbSet<UserEntity> CurrentDbSet
         {
@@ -129,8 +133,12 @@ namespace Easy.Modules.User.Service
             {
                 throw new Exception(_localize.Get("{0} is already exists").FormatWith(item.Email));
             }
-
+            var existingUser = item.NeedAudit() ? Get(item.UserID) : null;
             var result = base.Update(item);
+            if (existingUser != null && result.IsSuccess)
+            {
+                _auditTrailService.AuditUpdate(existingUser, Get(item.UserID));
+            }
             return result;
         }
 

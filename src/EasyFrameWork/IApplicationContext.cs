@@ -13,6 +13,7 @@ namespace Easy
         IUser CurrentUser { get; }
         IUser CurrentCustomer { get; }
         IWebHostEnvironment HostingEnvironment { get; }
+        IServiceProvider ServiceProvider { get; }
         bool IsAuthenticated { get; }
         T As<T>() where T : class, IApplicationContext;
         T Get<T>(string name);

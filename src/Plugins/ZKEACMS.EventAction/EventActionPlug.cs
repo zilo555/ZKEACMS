@@ -109,6 +109,8 @@ namespace ZKEACMS.EventAction
             serviceCollection.RegistActionExecutor<ActionExecutor.Executors.HttpExecutor>(ActionExecutor.Executors.HttpExecutor.Name);
 
             serviceCollection.AddHostedService<PendingTaskBackgroundService>();
+
+            serviceCollection.AddAuditValueProvider<EventAuditValueProvider>();
         }
     }
 }

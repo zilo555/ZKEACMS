@@ -22,6 +22,7 @@ using Fluid;
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Caching.Memory;
+using Easy.AuditTrail;
 
 namespace ZKEACMS.EventAction.Service
 {
@@ -33,15 +34,22 @@ namespace ZKEACMS.EventAction.Service
         private readonly ISignals _signals;
         private readonly ILogger<EventActionService> _logger;
         private readonly ILocalize _localize;
+        private readonly IAuditTrailService _auditTrailService;
 
-        public EventActionService(IApplicationContext applicationContext, CMSDbContext dbContext,
-            ICacheManager<EventActionService> cacheManager, ILogger<EventActionService> logger, ILocalize localize, ISignals signals)
+        public EventActionService(IApplicationContext applicationContext,
+            CMSDbContext dbContext,
+            ICacheManager<EventActionService> cacheManager,
+            ILogger<EventActionService> logger,
+            ILocalize localize,
+            ISignals signals,
+            IAuditTrailService auditTrailService)
             : base(applicationContext, dbContext)
         {
             _cacheManager = cacheManager;
             _logger = logger;
             _localize = localize;
             _signals = signals;
+            _auditTrailService = auditTrailService;
         }
 
         public override ErrorOr<Models.EventAction> Update(Models.EventAction item)
@@ -50,7 +58,13 @@ namespace ZKEACMS.EventAction.Service
             if (result.HasError) return result;
 
             _signals.Trigger(EventActionChanged);
-            return base.Update(item);
+            var oldItem = Get(item.ID);
+            var saveResult = base.Update(item);
+            if (saveResult.IsSuccess)
+            {
+                _auditTrailService.AuditUpdate(oldItem, item);
+            }
+            return saveResult;
         }
         public override ErrorOr<Models.EventAction> Add(Models.EventAction item)
         {
@@ -127,7 +141,7 @@ namespace ZKEACMS.EventAction.Service
         {
             return RegexEncoder().Replace(actions, evaluator =>
             {
-                return $":{ evaluator.Groups[1].Value }'{ evaluator.Groups[2].Value + evaluator.Groups[3].Value + evaluator.Groups[4].Value}'";
+                return $":{evaluator.Groups[1].Value}'{evaluator.Groups[2].Value + evaluator.Groups[3].Value + evaluator.Groups[4].Value}'";
             });
         }
 

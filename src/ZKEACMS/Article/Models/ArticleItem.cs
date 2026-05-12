@@ -3,6 +3,7 @@
  * http://www.zkea.net/licenses */
 
 
+using Easy.AuditTrail.Attributes;
 using Easy.MetaData;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,10 @@ namespace ZKEACMS.Article.Models
 {
     public class ArticleItem
     {
+        [AuditTitle]
         public string Title { get; set; }
+
+        [AuditKey]
         public int ArticleID { get; set; }
     }
     class ArticleGalleryProductMetaData : ViewMetaData<ArticleItem>
