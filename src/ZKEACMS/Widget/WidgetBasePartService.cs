@@ -73,7 +73,12 @@ namespace ZKEACMS.Widget
 
                     if (page.Content.IsNotNullAndWhiteSpace())
                     {
-                        return JsonConverter.DeserializePolymorphic<PageContent>(page.Content).Widgets;
+                        var pageContent = JsonConverter.DeserializePolymorphic<PageContent>(page.Content);
+                        var layoutWidgets = GetByLayoutId(page.LayoutId);
+                        return layoutWidgets
+                            .Select(w => _widgetActivator.Create(w)?.GetWidget(w))
+                            .Concat(pageContent.Widgets)
+                            .ToList();
                     }
                     return getPageWidgets(page);
                 });
